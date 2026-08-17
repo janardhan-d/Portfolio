@@ -1,11 +1,10 @@
 # 👑 Janardhan Devarala — AI Engineer & Full-Stack Portfolio
 
+[![Live Site](https://img.shields.io/badge/Live_Site-janardhan--devarala--portfolio.netlify.app-F59E0B?style=for-the-badge&logo=netlify&logoColor=black)](https://janardhan-devarala-portfolio.netlify.app)
 [![React](https://img.shields.io/badge/React-18.3.1-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-6.0.7-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-3.4.17-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Express](https://img.shields.io/badge/Express-4.21.2-000000?logo=express&logoColor=white)](https://expressjs.com/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Cloud_Atlas-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
-[![SQLite](https://img.shields.io/badge/SQLite-3.46-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 
 An interactive, high-performance portfolio website built for **Janardhan Devarala** (B.Tech AI Student & Python / Full-Stack Developer). Built around a **Gold & Obsidian Black** luxury design system, featuring an **AI Portfolio Voice Assistant**, interactive **Dev PlaySpace (4 Developer Mini-Games)**, and a **Dual Database (MongoDB Cloud + SQLite)** backend.
 
@@ -13,8 +12,8 @@ An interactive, high-performance portfolio website built for **Janardhan Devaral
 
 ## 🚀 Live Links & Repositories
 
+- 🌐 **Official Live Website**: [https://janardhan-devarala-portfolio.netlify.app](https://janardhan-devarala-portfolio.netlify.app)
 - 🐙 **GitHub Repository**: [https://github.com/janardhan-d/Portfolio](https://github.com/janardhan-d/Portfolio)
-- 🌐 **Netlify Live Site**: Deployed live from `main` branch (`stately-semifreddo-8eecc7`)
 - 💻 **Local Dev Server**: `http://localhost:3015/`
 - 🗄️ **Backend Database API**: `http://localhost:5000/api/stats`
 
@@ -150,7 +149,6 @@ node server.js
 ```bash
 npm run dev
 ```
-*(Opens application in browser at `http://localhost:3000` or next available port)*
 
 ---
 
