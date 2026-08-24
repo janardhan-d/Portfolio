@@ -110,7 +110,7 @@ export const projectsData = [
     description: "An interactive full-stack learning platform where users can select computer science topics, take timed quizzes, view analytical scorecards, and get automated performance reviews.",
     techStack: ["React", "Tailwind CSS", "JavaScript", "Node.js", "Express", "SQLite"],
     github: "https://github.com/janardhan-d/ai-quiz-platform",
-    liveUrl: "https://janardhan-d.github.io/Portfolio/",
+    liveUrl: "https://janardhan-d.github.io/Portfolio/ai-quiz-platform/",
     imageBg: "from-yellow-950/60 via-amber-950/40 to-slate-950",
     features: [
       "Dynamic topic selector with timed question modules",
