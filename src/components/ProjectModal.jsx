@@ -11,8 +11,10 @@ import {
   Monitor
 } from 'lucide-react';
 
-export default function ProjectModal({ project, onClose }) {
+export default function ProjectModal({ project, onClose, onLaunchQuizHub }) {
   if (!project) return null;
+
+  const isQuizApp = project.id === 'ai-quiz-app';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
@@ -55,7 +57,7 @@ export default function ProjectModal({ project, onClose }) {
                 </span>
               </div>
               <span className="text-[10px] font-mono bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded font-bold">
-                Live Interactive Preview
+                Live Interactive App
               </span>
             </div>
 
@@ -64,21 +66,34 @@ export default function ProjectModal({ project, onClose }) {
                 <Monitor className="w-7 h-7" />
               </div>
               <h4 className="text-lg font-bold text-white">
-                {project.title} Preview
+                {project.title}
               </h4>
               <p className="text-xs text-slate-300 max-w-md">
                 {project.description}
               </p>
               <div className="flex items-center gap-2 pt-2">
+                {isQuizApp && onLaunchQuizHub && (
+                  <button
+                    onClick={() => {
+                      onClose();
+                      onLaunchQuizHub();
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-black text-xs flex items-center gap-2 hover:from-amber-300 hover:to-amber-400 transition-colors shadow-lg shadow-amber-500/30"
+                  >
+                    <Play className="w-4 h-4 fill-slate-950" />
+                    <span>Launch Fully Working App Workspace</span>
+                  </button>
+                )}
+
                 {project.github && (
                   <a
                     href={project.github}
                     target="_blank"
                     rel="noreferrer"
-                    className="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 hover:bg-amber-400 transition-colors"
+                    className="px-4 py-2.5 rounded-xl bg-slate-900 text-slate-200 border border-slate-700 hover:text-white font-bold text-xs flex items-center gap-1.5 transition-colors"
                   >
                     <Github className="w-4 h-4" />
-                    <span>View Repository Code</span>
+                    <span>View Repository</span>
                   </a>
                 )}
               </div>
@@ -146,6 +161,19 @@ export default function ProjectModal({ project, onClose }) {
 
         {/* Modal Footer CTAs */}
         <div className="p-4 bg-slate-950 border-t border-slate-800 flex items-center justify-end gap-3">
+          {isQuizApp && onLaunchQuizHub && (
+            <button
+              onClick={() => {
+                onClose();
+                onLaunchQuizHub();
+              }}
+              className="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 hover:bg-amber-400 text-xs font-extrabold shadow-lg flex items-center gap-1.5"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Launch Quiz Hub App</span>
+            </button>
+          )}
+
           {project.github && (
             <a
               href={project.github}
@@ -160,9 +188,9 @@ export default function ProjectModal({ project, onClose }) {
 
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 hover:bg-amber-400 text-xs font-extrabold shadow-lg"
+            className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-bold"
           >
-            Close Demonstration
+            Close
           </button>
         </div>
 

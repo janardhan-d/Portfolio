@@ -8,16 +8,26 @@ import {
 } from 'lucide-react';
 import { projectsData } from '../data/portfolioData';
 import ProjectModal from './ProjectModal';
+import QuizHubModal from './quiz/QuizHubModal';
 
 export default function Projects() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [activeModalProject, setActiveModalProject] = useState(null);
+  const [isQuizHubOpen, setIsQuizHubOpen] = useState(false);
 
   const categories = ['All', 'Python / GUI', 'Full-Stack & AI', 'Full-Stack'];
 
   const filteredProjects = selectedCategory === 'All'
     ? projectsData
     : projectsData.filter((p) => p.category === selectedCategory);
+
+  const handleOpenProject = (project) => {
+    if (project.id === 'ai-quiz-app') {
+      setIsQuizHubOpen(true);
+    } else {
+      setActiveModalProject(project);
+    }
+  };
 
   return (
     <section id="projects" className="py-20 relative">
@@ -114,7 +124,7 @@ export default function Projects() {
               {/* Action Links Footer */}
               <div className="p-6 pt-0 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-800/80 mt-4 pt-4">
                 <button
-                  onClick={() => setActiveModalProject(project)}
+                  onClick={() => handleOpenProject(project)}
                   className="text-xs font-extrabold text-amber-600 dark:text-amber-400 hover:text-amber-500 flex items-center gap-1.5 group/btn"
                 >
                   <Info className="w-4 h-4" />
@@ -136,7 +146,7 @@ export default function Projects() {
                   )}
 
                   <button
-                    onClick={() => setActiveModalProject(project)}
+                    onClick={() => handleOpenProject(project)}
                     className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 hover:from-amber-300 hover:to-amber-400 text-xs font-extrabold flex items-center gap-1.5 transition-colors shadow-[0_0_15px_rgba(245,158,11,0.3)]"
                     title="Open Live Interactive Demo Showcase"
                   >
@@ -150,10 +160,16 @@ export default function Projects() {
           ))}
         </div>
 
-        {/* Modal Window Render */}
+        {/* Modal Windows Render */}
         <ProjectModal
           project={activeModalProject}
           onClose={() => setActiveModalProject(null)}
+          onLaunchQuizHub={() => setIsQuizHubOpen(true)}
+        />
+
+        <QuizHubModal
+          isOpen={isQuizHubOpen}
+          onClose={() => setIsQuizHubOpen(false)}
         />
 
       </div>
