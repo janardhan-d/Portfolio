@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Gamepad2, 
   X, 
@@ -13,7 +13,13 @@ import {
   Flame,
   CheckCircle2,
   Sliders,
-  Terminal
+  Terminal,
+  Play,
+  RotateCcw,
+  ArrowUp,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -72,9 +78,142 @@ const bugItemsList = [
 ];
 
 export default function RecruiterArcade({ isOpen, onClose }) {
-  const [activeTab, setActiveTab] = useState('typer'); // 'typer', 'memory', 'prompt', 'bugs'
+  const [activeTab, setActiveTab] = useState('snake'); // 'snake', 'typer', 'memory', 'prompt', 'bugs'
 
-  // --- Game 1: Speed Typer State ---
+  // ==========================================
+  // --- GAME 1: Snake Game State & Logic ---
+  // ==========================================
+  const GRID_SIZE = 16;
+  const [snake, setSnake] = useState([
+    { x: 8, y: 8 },
+    { x: 7, y: 8 },
+    { x: 6, y: 8 }
+  ]);
+  const [food, setFood] = useState({ x: 12, y: 8 });
+  const [isGoldFood, setIsGoldFood] = useState(false);
+  const [direction, setDirection] = useState('RIGHT');
+  const [snakeScore, setSnakeScore] = useState(0);
+  const [snakeHighScore, setSnakeHighScore] = useState(() => {
+    return parseInt(localStorage.getItem('snake_highscore') || '0', 10);
+  });
+  const [snakeRunning, setSnakeRunning] = useState(false);
+  const [snakeGameOver, setSnakeGameOver] = useState(false);
+  const directionRef = useRef('RIGHT');
+
+  // Change Direction helper
+  const changeSnakeDirection = (newDir) => {
+    const opposites = { UP: 'DOWN', DOWN: 'UP', LEFT: 'RIGHT', RIGHT: 'LEFT' };
+    if (opposites[newDir] !== directionRef.current) {
+      directionRef.current = newDir;
+      setDirection(newDir);
+    }
+  };
+
+  // Keyboard controls for Snake
+  useEffect(() => {
+    if (!isOpen || activeTab !== 'snake') return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') changeSnakeDirection('UP');
+      if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') changeSnakeDirection('DOWN');
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') changeSnakeDirection('LEFT');
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') changeSnakeDirection('RIGHT');
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, activeTab]);
+
+  // Snake Tick Interval
+  useEffect(() => {
+    if (!snakeRunning || snakeGameOver) return;
+
+    const tick = setInterval(() => {
+      setSnake((prevSnake) => {
+        const head = { ...prevSnake[0] };
+        const currentDir = directionRef.current;
+
+        if (currentDir === 'UP') head.y -= 1;
+        if (currentDir === 'DOWN') head.y += 1;
+        if (currentDir === 'LEFT') head.x -= 1;
+        if (currentDir === 'RIGHT') head.x += 1;
+
+        // Check Wall Collision
+        if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
+          handleSnakeGameOver();
+          return prevSnake;
+        }
+
+        // Check Self Collision
+        for (let segment of prevSnake) {
+          if (segment.x === head.x && segment.y === head.y) {
+            handleSnakeGameOver();
+            return prevSnake;
+          }
+        }
+
+        // Check Food Collision
+        const newSnake = [head, ...prevSnake];
+        if (head.x === food.x && head.y === food.y) {
+          const addedScore = isGoldFood ? 30 : 10;
+          setSnakeScore((s) => {
+            const nextS = s + addedScore;
+            if (nextS > snakeHighScore) {
+              setSnakeHighScore(nextS);
+              localStorage.setItem('snake_highscore', nextS.toString());
+            }
+            return nextS;
+          });
+
+          // Generate new food
+          generateFood(newSnake);
+        } else {
+          newSnake.pop();
+        }
+
+        return newSnake;
+      });
+    }, 130);
+
+    return () => clearInterval(tick);
+  }, [snakeRunning, snakeGameOver, food, isGoldFood, snakeHighScore]);
+
+  const generateFood = (currentSnake) => {
+    let newX, newY;
+    while (true) {
+      newX = Math.floor(Math.random() * GRID_SIZE);
+      newY = Math.floor(Math.random() * GRID_SIZE);
+      const isOccupied = currentSnake.some((seg) => seg.x === newX && seg.y === newY);
+      if (!isOccupied) break;
+    }
+    setFood({ x: newX, y: newY });
+    setIsGoldFood(Math.random() > 0.7);
+  };
+
+  const startSnakeGame = () => {
+    const initialSnake = [
+      { x: 8, y: 8 },
+      { x: 7, y: 8 },
+      { x: 6, y: 8 }
+    ];
+    setSnake(initialSnake);
+    setDirection('RIGHT');
+    directionRef.current = 'RIGHT';
+    setSnakeScore(0);
+    setSnakeGameOver(false);
+    setSnakeRunning(true);
+    generateFood(initialSnake);
+  };
+
+  const handleSnakeGameOver = () => {
+    setSnakeRunning(false);
+    setSnakeGameOver(true);
+    confetti({ particleCount: 50, spread: 60 });
+  };
+
+  // ==========================================
+  // --- GAME 2: Speed Typer Logic ---
+  // ==========================================
   const [snippetIndex, setSnippetIndex] = useState(0);
   const [typedInput, setTypedInput] = useState('');
   const [scoreWpm, setScoreWpm] = useState(0);
@@ -83,93 +222,29 @@ export default function RecruiterArcade({ isOpen, onClose }) {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [typerGameOver, setTyperGameOver] = useState(false);
 
-  // --- Game 2: Memory Matcher State ---
-  const [cards, setCards] = useState([]);
-  const [flippedCards, setFlippedCards] = useState([]);
-  const [matchedIds, setMatchedIds] = useState([]);
-  const [memoryMoves, setMemoryMoves] = useState(0);
-  const [memoryGameOver, setMemoryGameOver] = useState(false);
-
-  // --- Game 3: Prompt Engineer State ---
-  const [promptIdx, setPromptIdx] = useState(0);
-  const [tempVal, setTempVal] = useState(0.7);
-  const [topPVal, setTopPVal] = useState(0.9);
-  const [promptScore, setPromptScore] = useState(0);
-  const [promptResult, setPromptResult] = useState('');
-
-  // --- Game 4: Bug Smasher State ---
-  const [activeBugs, setActiveBugs] = useState([]);
-  const [smashedCount, setSmashedCount] = useState(0);
-  const [bugTimeLeft, setBugTimeLeft] = useState(20);
-  const [bugGameActive, setBugGameActive] = useState(false);
-
-  // Initialize Memory Game
-  const initMemoryGame = () => {
-    const duplicated = [...memoryCardsList, ...memoryCardsList].map((card, idx) => ({
-      ...card,
-      uniqueId: idx
-    }));
-    const shuffled = duplicated.sort(() => Math.random() - 0.5);
-    setCards(shuffled);
-    setFlippedCards([]);
-    setMatchedIds([]);
-    setMemoryMoves(0);
-    setMemoryGameOver(false);
-  };
-
-  useEffect(() => {
-    if (isOpen && activeTab === 'memory') {
-      initMemoryGame();
-    }
-  }, [isOpen, activeTab]);
-
-  // Typer Timer Countdown
   useEffect(() => {
     let timer = null;
     if (isTimerRunning && timeLeft > 0) {
-      timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
+      timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
     } else if (timeLeft === 0 && isTimerRunning) {
       setIsTimerRunning(false);
       setTyperGameOver(true);
-      try { confetti({ particleCount: 70, spread: 60 }); } catch (e) {}
+      confetti({ particleCount: 80, spread: 70 });
     }
     return () => clearInterval(timer);
   }, [isTimerRunning, timeLeft]);
 
-  // Bug Smasher Timer Countdown
-  useEffect(() => {
-    let bTimer = null;
-    if (bugGameActive && bugTimeLeft > 0) {
-      bTimer = setInterval(() => {
-        setBugTimeLeft((prev) => prev - 1);
-        // Randomly spawn bugs
-        if (Math.random() > 0.4) {
-          const randomBug = bugItemsList[Math.floor(Math.random() * bugItemsList.length)];
-          setActiveBugs((prev) => [...prev.slice(-4), { ...randomBug, key: Date.now() + Math.random() }]);
-        }
-      }, 1000);
-    } else if (bugTimeLeft === 0 && bugGameActive) {
-      setBugGameActive(false);
-      try { confetti({ particleCount: 80, spread: 70 }); } catch (e) {}
-    }
-    return () => clearInterval(bTimer);
-  }, [bugGameActive, bugTimeLeft]);
-
-  // Typer Input Handler
-  const handleTyperChange = (e) => {
+  const handleTypeChange = (e) => {
     const val = e.target.value;
-    if (!isTimerRunning && !typerGameOver) {
-      setIsTimerRunning(true);
-    }
-
     setTypedInput(val);
+    if (!isTimerRunning && !typerGameOver) setIsTimerRunning(true);
 
-    const targetSnippet = codeSnippets[snippetIndex];
-    if (val === targetSnippet) {
-      setCompletedCount((prev) => prev + 1);
+    const target = codeSnippets[snippetIndex];
+    if (val === target) {
+      setCompletedCount((c) => c + 1);
+      setScoreWpm((w) => w + Math.round(target.length * 1.5));
       setTypedInput('');
-      setSnippetIndex((prev) => (prev + 1) % codeSnippets.length);
-      setScoreWpm((prev) => prev + Math.floor(targetSnippet.length / 2));
+      setSnippetIndex((idx) => (idx + 1) % codeSnippets.length);
     }
   };
 
@@ -183,362 +258,450 @@ export default function RecruiterArcade({ isOpen, onClose }) {
     setTyperGameOver(false);
   };
 
-  // Memory Card Flip Handler
+  // ==========================================
+  // --- GAME 3: Memory Matcher Logic ---
+  // ==========================================
+  const [cards, setCards] = useState([]);
+  const [flippedCards, setFlippedCards] = useState([]);
+  const [matchedIds, setMatchedIds] = useState([]);
+  const [memoryMoves, setMemoryMoves] = useState(0);
+  const [memoryGameOver, setMemoryGameOver] = useState(false);
+
+  const initMemoryGame = () => {
+    const duplicated = [...memoryCardsList, ...memoryCardsList].map((item, idx) => ({
+      uniqueId: idx,
+      ...item
+    }));
+    const shuffled = duplicated.sort(() => Math.random() - 0.5);
+    setCards(shuffled);
+    setFlippedCards([]);
+    setMatchedIds([]);
+    setMemoryMoves(0);
+    setMemoryGameOver(false);
+  };
+
+  useEffect(() => {
+    if (activeTab === 'memory') initMemoryGame();
+  }, [activeTab]);
+
   const handleCardClick = (index) => {
-    if (flippedCards.length === 2 || flippedCards.includes(index) || matchedIds.includes(cards[index].uniqueId)) {
-      return;
-    }
+    if (flippedCards.length === 2 || flippedCards.includes(index) || matchedIds.includes(cards[index].uniqueId)) return;
 
-    const newFlipped = [...flippedCards, index];
-    setFlippedCards(newFlipped);
+    const nextFlipped = [...flippedCards, index];
+    setFlippedCards(nextFlipped);
 
-    if (newFlipped.length === 2) {
-      setMemoryMoves((prev) => prev + 1);
-      const [firstIdx, secondIdx] = newFlipped;
+    if (nextFlipped.length === 2) {
+      setMemoryMoves((m) => m + 1);
+      const first = cards[nextFlipped[0]];
+      const second = cards[nextFlipped[1]];
 
-      if (cards[firstIdx].id === cards[secondIdx].id) {
-        setMatchedIds((prev) => [...prev, cards[firstIdx].uniqueId, cards[secondIdx].uniqueId]);
+      if (first.id === second.id) {
+        setMatchedIds((prev) => {
+          const updated = [...prev, first.uniqueId, second.uniqueId];
+          if (updated.length === cards.length) {
+            setMemoryGameOver(true);
+            confetti({ particleCount: 100, spread: 80 });
+          }
+          return updated;
+        });
         setFlippedCards([]);
-        
-        if (matchedIds.length + 2 === cards.length) {
-          setMemoryGameOver(true);
-          try { confetti({ particleCount: 90, spread: 70 }); } catch (e) {}
-        }
       } else {
         setTimeout(() => setFlippedCards([]), 900);
       }
     }
   };
 
-  // Prompt Engineer Test
-  const handleRunPromptSim = () => {
-    const currChallenge = promptChallenges[promptIdx];
-    if (tempVal <= currChallenge.optimalTemp + 0.15 && topPVal >= currChallenge.optimalTopP - 0.1) {
-      setPromptResult(`✅ Optimal Parameters Matched! LLM Output: Perfect Python Code Generation with 100% Deterministic Precision! Score: +100`);
-      setPromptScore((prev) => prev + 100);
-      try { confetti({ particleCount: 60, spread: 50 }); } catch (e) {}
-    } else {
-      setPromptResult(`⚠️ Suboptimal Parameters. Temperature is too high (${tempVal}), causing hallucinations. Lower Temperature to <= 0.3!`);
+  // ==========================================
+  // --- GAME 4: Bug Smasher Logic ---
+  // ==========================================
+  const [bugs, setBugs] = useState(bugItemsList);
+  const [smashedScore, setSmashedScore] = useState(0);
+  const [bugsTimeLeft, setBugsTimeLeft] = useState(25);
+  const [bugsRunning, setBugsRunning] = useState(false);
+  const [bugsGameOver, setBugsGameOver] = useState(false);
+
+  useEffect(() => {
+    let t = null;
+    if (bugsRunning && bugsTimeLeft > 0) {
+      t = setInterval(() => setBugsTimeLeft((time) => time - 1), 1000);
+    } else if (bugsTimeLeft === 0 && bugsRunning) {
+      setBugsRunning(false);
+      setBugsGameOver(true);
+      confetti({ particleCount: 70, spread: 70 });
+    }
+    return () => clearInterval(t);
+  }, [bugsRunning, bugsTimeLeft]);
+
+  const smashBug = (id) => {
+    if (!bugsRunning) setBugsRunning(true);
+    setSmashedScore((s) => s + 100);
+    setBugs((prev) => prev.filter((b) => b.id !== id));
+
+    if (bugs.length <= 1) {
+      setTimeout(() => setBugs(bugItemsList.sort(() => Math.random() - 0.5)), 300);
     }
   };
 
-  // Bug Smash Handler
-  const handleSmashBug = (key) => {
-    setActiveBugs((prev) => prev.filter((b) => b.key !== key));
-    setSmashedCount((prev) => prev + 1);
-  };
-
-  const startBugGame = () => {
-    setBugTimeLeft(20);
-    setSmashedCount(0);
-    setActiveBugs([bugItemsList[0], bugItemsList[1]]);
-    setBugGameActive(true);
+  const resetBugsGame = () => {
+    setBugs(bugItemsList);
+    setSmashedScore(0);
+    setBugsTimeLeft(25);
+    setBugsRunning(false);
+    setBugsGameOver(false);
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
-      <div className="relative w-full max-w-3xl bg-[#0e1322] rounded-3xl border border-amber-500/40 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in">
+      <div className="relative w-full max-w-4xl glass-panel rounded-3xl p-6 sm:p-8 border border-amber-500/40 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
         
-        {/* PlaySpace Header */}
-        <div className="p-6 bg-slate-950 border-b border-amber-500/30 flex items-center justify-between">
+        {/* Header Bar */}
+        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-              <Gamepad2 className="w-6 h-6 animate-pulse" />
+            <div className="p-2.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400">
+              <Gamepad2 className="w-6 h-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-black text-lg text-white">
-                  Dev PlaySpace
-                </h3>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">
-                  4 Interactive Mini-Games
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 font-mono mt-0.5">
-                Explore speed typing, AI prompt tuning, memory grids, and real-time debugging!
-              </p>
+              <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
+                Dev PlaySpace <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-mono border border-amber-500/30">5 Mini-Games</span>
+              </h2>
+              <p className="text-xs text-slate-300 font-medium">Interactive games testing speed, logic, debugging & snake skills!</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* PlaySpace Game Selector Tabs */}
-        <div className="flex items-center justify-center bg-slate-900 border-b border-slate-800 p-2 overflow-x-auto">
-          <div className="flex items-center gap-1.5 bg-slate-950 p-1.5 rounded-2xl border border-amber-500/30">
-            
+        {/* Navigation Tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-800/80">
+          {[
+            { id: 'snake', label: '🐍 Neon Snake', badge: 'Popular' },
+            { id: 'typer', label: '⚡ Code Typer' },
+            { id: 'memory', label: '🧠 Stack Memory' },
+            { id: 'prompt', label: '🤖 LLM Prompt Tuner' },
+            { id: 'bugs', label: '🐛 Bug Smasher' }
+          ].map((tab) => (
             <button
-              onClick={() => setActiveTab('typer')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all ${
-                activeTab === 'typer'
-                  ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 shadow-md'
-                  : 'text-slate-300 hover:text-white'
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all flex items-center gap-2 ${
+                activeTab === tab.id
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-lg shadow-amber-500/20'
+                  : 'bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800'
               }`}
             >
-              <Zap className="w-3.5 h-3.5" />
-              <span>1. Code Speed Typer</span>
+              <span>{tab.label}</span>
+              {tab.badge && (
+                <span className="px-1.5 py-0.5 text-[9px] rounded-md bg-amber-950 text-amber-300 border border-amber-500/40">
+                  {tab.badge}
+                </span>
+              )}
             </button>
-
-            <button
-              onClick={() => setActiveTab('memory')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all ${
-                activeTab === 'memory'
-                  ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 shadow-md'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              <Brain className="w-3.5 h-3.5" />
-              <span>2. Memory Matcher</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('prompt')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all ${
-                activeTab === 'prompt'
-                  ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 shadow-md'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              <Sliders className="w-3.5 h-3.5" />
-              <span>3. AI Prompt Tuner</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('bugs')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all ${
-                activeTab === 'bugs'
-                  ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 shadow-md'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              <Bug className="w-3.5 h-3.5" />
-              <span>4. Bug Smasher</span>
-            </button>
-
-          </div>
+          ))}
         </div>
 
-        {/* Game Body Container */}
-        <div className="p-6 overflow-y-auto flex-1 bg-[#0e1322]">
-          
-          {/* Game 1: Speed Typer */}
-          {activeTab === 'typer' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-3 gap-3">
-                <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-center">
-                  <span className="text-[10px] font-mono text-slate-400 block font-bold">TIME REMAINING</span>
-                  <span className="text-xl font-black text-amber-400 font-mono mt-0.5 block flex items-center justify-center gap-1">
-                    <Timer className="w-4 h-4 text-amber-400" />
-                    <span>{timeLeft}s</span>
-                  </span>
-                </div>
-                <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-center">
-                  <span className="text-[10px] font-mono text-slate-400 block font-bold">SNIPPETS TYPED</span>
-                  <span className="text-xl font-black text-emerald-400 font-mono mt-0.5 block">{completedCount}</span>
-                </div>
-                <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-center">
-                  <span className="text-[10px] font-mono text-slate-400 block font-bold">ESTIMATED WPM</span>
-                  <span className="text-xl font-black text-amber-300 font-mono mt-0.5 block">{scoreWpm}</span>
-                </div>
-              </div>
-
-              {!typerGameOver ? (
-                <div className="space-y-4">
-                  <div className="p-5 rounded-2xl bg-slate-950 border border-amber-500/40 text-center relative overflow-hidden shadow-inner">
-                    <span className="text-[10px] font-mono text-amber-400 uppercase tracking-widest font-bold block mb-1">
-                      TARGET CODE SNIPPET ({snippetIndex + 1}/{codeSnippets.length})
-                    </span>
-                    <div className="font-mono text-lg font-bold text-white tracking-wide bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-                      {codeSnippets[snippetIndex]}
-                    </div>
-                  </div>
-                  <input
-                    type="text"
-                    disabled={typerGameOver}
-                    placeholder={isTimerRunning ? "Type code snippet here..." : "Start typing to begin 30s timer!"}
-                    value={typedInput}
-                    onChange={handleTyperChange}
-                    className="w-full px-5 py-3.5 rounded-2xl bg-slate-950 border border-amber-500/50 font-mono text-base text-amber-300 placeholder-slate-500 focus:outline-none focus:border-amber-400 shadow-lg"
-                  />
-                </div>
-              ) : (
-                <div className="p-6 rounded-2xl bg-slate-950 border border-amber-500/50 text-center space-y-4 shadow-2xl">
-                  <div className="w-14 h-14 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto animate-bounce">
-                    <Trophy className="w-7 h-7" />
-                  </div>
-                  <h4 className="text-2xl font-black text-white">Challenge Complete! Score: {scoreWpm} WPM</h4>
-                </div>
-              )}
-
-              <div className="flex justify-center pt-2">
-                <button onClick={resetTyperGame} className="px-5 py-2.5 rounded-xl bg-slate-900 text-amber-400 border border-slate-700 text-xs font-mono font-bold flex items-center gap-2">
-                  <RefreshCw className="w-4 h-4" /> Restart Typer
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Game 2: Tech Stack Memory Matcher */}
-          {activeTab === 'memory' && (
-            <div className="space-y-5">
-              <div className="flex items-center justify-between text-xs font-mono text-slate-300">
-                <span>Moves: <strong className="text-amber-400 text-base">{memoryMoves}</strong></span>
-                <span>Matched: <strong className="text-emerald-400 text-base">{matchedIds.length / 2} / 6</strong></span>
-              </div>
-              <div className="grid grid-cols-4 gap-3">
-                {cards.map((card, idx) => {
-                  const isFlipped = flippedCards.includes(idx) || matchedIds.includes(card.uniqueId);
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => handleCardClick(idx)}
-                      className={`h-20 rounded-2xl text-2xl font-extrabold flex flex-col items-center justify-center transition-all duration-300 border ${
-                        isFlipped ? 'bg-slate-950 border-amber-500/60 text-white' : 'bg-slate-900 border-slate-800 text-slate-600'
-                      }`}
-                    >
-                      {isFlipped ? (
-                        <>
-                          <span className="text-2xl">{card.icon}</span>
-                          <span className="text-[10px] font-mono text-amber-300 font-bold mt-1">{card.name}</span>
-                        </>
-                      ) : <span className="text-slate-600 font-mono text-xs">?</span>}
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="flex justify-center pt-2">
-                <button onClick={initMemoryGame} className="px-5 py-2.5 rounded-xl bg-slate-900 text-amber-400 border border-slate-700 text-xs font-mono font-bold flex items-center gap-2">
-                  <RefreshCw className="w-4 h-4" /> Reset Grid
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Game 3: Trending AI Prompt Tuner */}
-          {activeTab === 'prompt' && (
-            <div className="space-y-6">
-              <div className="p-4 rounded-2xl bg-slate-950 border border-amber-500/40 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono text-amber-400 font-bold uppercase">GenAI Parameter Tuning Lab</span>
-                  <span className="text-xs font-mono text-emerald-400 font-bold">Total Score: {promptScore}</span>
-                </div>
-                <h4 className="text-base font-extrabold text-white">{promptChallenges[promptIdx].title}</h4>
-                <p className="text-xs text-slate-300">{promptChallenges[promptIdx].description}</p>
-                <div className="p-2.5 rounded-xl bg-slate-900 text-[11px] font-mono text-amber-300 border border-slate-800">
-                  {promptChallenges[promptIdx].task}
-                </div>
-              </div>
-
-              <div className="space-y-4 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+        {/* ============================================================ */}
+        {/* GAME TAB 1: SNAKE GAME */}
+        {/* ============================================================ */}
+        {activeTab === 'snake' && (
+          <div className="space-y-6">
+            {/* Top Score Dashboard */}
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-900/90 border border-amber-500/30">
+              <div className="flex items-center gap-4">
                 <div>
-                  <div className="flex justify-between text-xs font-mono mb-1">
-                    <span className="text-slate-300 font-bold">Temperature: {tempVal}</span>
-                    <span className="text-slate-500">(0.0 = Deterministic, 1.0 = Creative)</span>
-                  </div>
-                  <input
-                    type="range" min="0" max="1" step="0.05"
-                    value={tempVal}
-                    onChange={(e) => setTempVal(parseFloat(e.target.value))}
-                    className="w-full accent-amber-500 cursor-pointer"
-                  />
+                  <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">Current Score</span>
+                  <p className="text-2xl font-black text-amber-400 font-mono">{snakeScore}</p>
                 </div>
-
+                <div className="h-8 w-px bg-slate-800" />
                 <div>
-                  <div className="flex justify-between text-xs font-mono mb-1">
-                    <span className="text-slate-300 font-bold">Top-P (Nucleus Sampling): {topPVal}</span>
-                    <span className="text-slate-500">(0.1 - 1.0)</span>
-                  </div>
-                  <input
-                    type="range" min="0.1" max="1" step="0.05"
-                    value={topPVal}
-                    onChange={(e) => setTopPVal(parseFloat(e.target.value))}
-                    className="w-full accent-amber-500 cursor-pointer"
-                  />
+                  <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">High Score</span>
+                  <p className="text-2xl font-black text-amber-500 font-mono">{snakeHighScore}</p>
                 </div>
+              </div>
 
+              {!snakeRunning && (
                 <button
-                  onClick={handleRunPromptSim}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-xs shadow-lg hover:bg-amber-400 transition-colors"
+                  onClick={startSnakeGame}
+                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-lg flex items-center gap-2"
                 >
-                  Simulate LLM Generation
+                  <Play className="w-4 h-4 fill-slate-950" />
+                  <span>{snakeGameOver ? 'Play Again' : 'Start Snake Game'}</span>
                 </button>
-              </div>
-
-              {promptResult && (
-                <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-amber-300">
-                  {promptResult}
-                </div>
               )}
             </div>
-          )}
 
-          {/* Game 4: Trending Bug Smasher Arcade */}
-          {activeTab === 'bugs' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between bg-slate-950 p-4 rounded-2xl border border-amber-500/40">
-                <div>
-                  <span className="text-xs font-mono text-amber-400 font-bold block">REAL-TIME SYNTAX DEBUGGER</span>
-                  <span className="text-sm font-bold text-white">Smash syntax bugs before timer expires!</span>
-                </div>
-                <div className="flex items-center gap-4 font-mono text-xs">
-                  <span>Timer: <strong className="text-amber-400 text-sm">{bugTimeLeft}s</strong></span>
-                  <span>Bugs Smashed: <strong className="text-emerald-400 text-sm">{smashedCount}</strong></span>
-                </div>
-              </div>
+            {/* Snake Grid Canvas */}
+            <div className="relative mx-auto w-full max-w-md aspect-square bg-slate-950 rounded-2xl border-2 border-amber-500/40 overflow-hidden shadow-2xl p-2 grid grid-cols-16 gap-0.5">
+              {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, i) => {
+                const x = i % GRID_SIZE;
+                const y = Math.floor(i / GRID_SIZE);
 
-              {!bugGameActive ? (
-                <div className="p-8 rounded-2xl bg-slate-950 border border-slate-800 text-center space-y-4">
-                  <div className="w-12 h-12 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto">
-                    <Bug className="w-6 h-6" />
-                  </div>
-                  <h4 className="text-xl font-black text-white">Ready to Smash Bugs?</h4>
-                  <p className="text-xs text-slate-300">Clicking active bug alerts in 20s window earns points!</p>
+                const isHead = snake[0].x === x && snake[0].y === y;
+                const isBody = snake.slice(1).some((s) => s.x === x && s.y === y);
+                const isFoodItem = food.x === x && food.y === y;
+
+                return (
+                  <div
+                    key={i}
+                    className={`w-full h-full rounded-xs transition-all duration-75 ${
+                      isHead
+                        ? 'bg-amber-400 shadow-[0_0_10px_#f59e0b] scale-105 z-10'
+                        : isBody
+                        ? 'bg-amber-600/80 border border-amber-500/30'
+                        : isFoodItem
+                        ? isGoldFood
+                          ? 'bg-yellow-300 animate-ping shadow-[0_0_12px_#fde047]'
+                          : 'bg-rose-500 animate-pulse shadow-[0_0_10px_#f43f5e]'
+                        : 'bg-slate-900/40'
+                    }`}
+                  />
+                );
+              })}
+
+              {/* Game Over Banner Overlay */}
+              {snakeGameOver && (
+                <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center space-y-4">
+                  <Trophy className="w-12 h-12 text-amber-400 animate-bounce" />
+                  <h3 className="text-2xl font-black text-white">Game Over!</h3>
+                  <p className="text-xs text-slate-300 font-mono">Final Score: <strong className="text-amber-400">{snakeScore}</strong></p>
                   <button
-                    onClick={startBugGame}
-                    className="px-6 py-3 rounded-xl bg-amber-500 text-slate-950 font-black text-xs shadow-lg hover:bg-amber-400"
+                    onClick={startSnakeGame}
+                    className="px-6 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-black text-xs shadow-lg"
                   >
-                    Start 20s Bug Smash Challenge
+                    Play Again
                   </button>
                 </div>
-              ) : (
-                <div className="p-6 rounded-2xl bg-slate-950 border border-slate-800 min-h-[220px] flex flex-wrap gap-3 items-center justify-center relative">
-                  {activeBugs.map((b) => (
-                    <button
-                      key={b.key}
-                      onClick={() => handleSmashBug(b.key)}
-                      className="px-4 py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/40 border border-rose-500/60 text-rose-300 font-mono text-xs font-bold flex items-center gap-2 shadow-lg animate-pulse hover:scale-105 transition-transform"
-                    >
-                      <Bug className="w-4 h-4 text-rose-400" />
-                      <span>{b.label}</span>
-                    </button>
-                  ))}
-                </div>
               )}
             </div>
-          )}
 
-        </div>
+            {/* Mobile / On-Screen Touch D-Pad Controls */}
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-[11px] font-mono text-slate-400">Use Keyboard Arrows / WASD or D-Pad below:</span>
+              <div className="grid grid-cols-3 gap-2 w-44">
+                <div />
+                <button
+                  onClick={() => changeSnakeDirection('UP')}
+                  className="p-3 rounded-xl bg-slate-900 border border-amber-500/40 hover:bg-amber-500 hover:text-slate-950 text-amber-400 flex items-center justify-center font-bold"
+                >
+                  <ArrowUp className="w-5 h-5" />
+                </button>
+                <div />
+                <button
+                  onClick={() => changeSnakeDirection('LEFT')}
+                  className="p-3 rounded-xl bg-slate-900 border border-amber-500/40 hover:bg-amber-500 hover:text-slate-950 text-amber-400 flex items-center justify-center font-bold"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => changeSnakeDirection('DOWN')}
+                  className="p-3 rounded-xl bg-slate-900 border border-amber-500/40 hover:bg-amber-500 hover:text-slate-950 text-amber-400 flex items-center justify-center font-bold"
+                >
+                  <ArrowDown className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => changeSnakeDirection('RIGHT')}
+                  className="p-3 rounded-xl bg-slate-900 border border-amber-500/40 hover:bg-amber-500 hover:text-slate-950 text-amber-400 flex items-center justify-center font-bold"
+                >
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
-        {/* PlaySpace Footer */}
-        <div className="p-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between">
-          <span className="text-[11px] text-slate-400 font-mono flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Dev PlaySpace Interactive Lounge</span>
-          </span>
-          <button
-            onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-amber-500 text-slate-950 font-black text-xs hover:bg-amber-400 transition-colors shadow-lg"
-          >
-            Close PlaySpace
-          </button>
-        </div>
+        {/* ============================================================ */}
+        {/* GAME TAB 2: CODE SPEED TYPER */}
+        {/* ============================================================ */}
+        {activeTab === 'typer' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-900 border border-slate-800">
+              <div className="flex items-center gap-6">
+                <div>
+                  <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">Time Left</span>
+                  <p className="text-2xl font-black text-amber-400 font-mono">{timeLeft}s</p>
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">Snippets Passed</span>
+                  <p className="text-2xl font-black text-white font-mono">{completedCount}</p>
+                </div>
+              </div>
+
+              <button
+                onClick={resetTyperGame}
+                className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-bold text-xs flex items-center gap-1.5"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Reset</span>
+              </button>
+            </div>
+
+            {/* Snippet Card */}
+            <div className="p-6 rounded-2xl bg-slate-950 border border-amber-500/40 text-center space-y-4">
+              <span className="text-xs font-mono text-amber-400 uppercase font-bold">Type exact code syntax below:</span>
+              <p className="text-2xl font-mono font-bold text-white tracking-wide bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                {codeSnippets[snippetIndex]}
+              </p>
+
+              <input
+                type="text"
+                value={typedInput}
+                onChange={handleTypeChange}
+                disabled={typerGameOver}
+                placeholder="Start typing snippet here..."
+                className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-amber-500/50 text-white font-mono text-base focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* GAME TAB 3: STACK MEMORY MATCHER */}
+        {/* ============================================================ */}
+        {activeTab === 'memory' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-900 border border-slate-800">
+              <div>
+                <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">Total Moves</span>
+                <p className="text-2xl font-black text-amber-400 font-mono">{memoryMoves}</p>
+              </div>
+
+              <button
+                onClick={initMemoryGame}
+                className="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs flex items-center gap-1.5"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Shuffle & Restart</span>
+              </button>
+            </div>
+
+            {/* Grid */}
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+              {cards.map((card, idx) => {
+                const isFlipped = flippedCards.includes(idx) || matchedIds.includes(card.uniqueId);
+
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => handleCardClick(idx)}
+                    className={`h-24 rounded-2xl border flex flex-col items-center justify-center cursor-pointer transition-all duration-300 transform ${
+                      isFlipped
+                        ? 'bg-amber-500/20 border-amber-500 text-white scale-100'
+                        : 'bg-slate-900 border-slate-800 text-slate-600 hover:border-amber-500/50 hover:scale-105'
+                    }`}
+                  >
+                    {isFlipped ? (
+                      <>
+                        <span className="text-3xl">{card.icon}</span>
+                        <span className="text-xs font-bold font-mono mt-1 text-amber-300">{card.name}</span>
+                      </>
+                    ) : (
+                      <Brain className="w-6 h-6 opacity-40" />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* GAME TAB 4: LLM PROMPT TUNER */}
+        {/* ============================================================ */}
+        {activeTab === 'prompt' && (
+          <div className="space-y-6">
+            <div className="p-6 rounded-2xl bg-slate-950 border border-amber-500/40 space-y-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Sliders className="w-5 h-5 text-amber-400" />
+                <span>{promptChallenges[promptIdx].title}</span>
+              </h3>
+              <p className="text-xs text-slate-300">{promptChallenges[promptIdx].description}</p>
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono font-bold">
+                Goal: {promptChallenges[promptIdx].task}
+              </div>
+
+              {/* Controls */}
+              <div className="space-y-4 pt-2">
+                <div>
+                  <div className="flex justify-between text-xs font-mono mb-1">
+                    <span className="text-slate-400">Temperature (Creativity):</span>
+                    <span className="text-amber-400 font-bold">{tempVal}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={tempVal}
+                    onChange={(e) => setTempVal(parseFloat(e.target.value))}
+                    className="w-full accent-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-xs font-mono mb-1">
+                    <span className="text-slate-400">Top-P (Nucleus Sampling):</span>
+                    <span className="text-amber-400 font-bold">{topPVal}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="1"
+                    step="0.05"
+                    value={topPVal}
+                    onChange={(e) => setTopPVal(parseFloat(e.target.value))}
+                    className="w-full accent-amber-500"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* GAME TAB 5: BUG SMASHER */}
+        {/* ============================================================ */}
+        {activeTab === 'bugs' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-900 border border-slate-800">
+              <div>
+                <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">Score</span>
+                <p className="text-2xl font-black text-amber-400 font-mono">{smashedScore}</p>
+              </div>
+
+              <button
+                onClick={resetBugsGame}
+                className="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs flex items-center gap-1.5"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Restart Smasher</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {bugs.map((bug) => (
+                <div
+                  key={bug.id}
+                  onClick={() => smashBug(bug.id)}
+                  className="p-4 rounded-xl bg-slate-900 border border-rose-500/40 hover:bg-rose-500/20 cursor-pointer flex items-center justify-between transition-all transform hover:scale-105 group"
+                >
+                  <div className="flex items-center gap-3">
+                    <Bug className="w-5 h-5 text-rose-400 group-hover:animate-bounce" />
+                    <span className="text-xs font-mono font-bold text-slate-200">{bug.label}</span>
+                  </div>
+                  <span className="px-2 py-1 rounded bg-rose-500/20 text-rose-300 text-[10px] font-mono font-bold uppercase">
+                    Smash!
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

@@ -7,7 +7,10 @@ import {
   BarChart3, 
   Cpu, 
   Trophy,
-  X
+  X,
+  Eye,
+  Maximize2,
+  CheckCircle2
 } from 'lucide-react';
 import { certsData } from '../data/portfolioData';
 
@@ -22,6 +25,7 @@ const iconMap = {
 
 export default function Certifications() {
   const [selectedCert, setSelectedCert] = useState(null);
+  const [hoveredIndex, setHoveredIndex] = useState(null);
 
   return (
     <section id="achievements" className="py-20 relative">
@@ -31,7 +35,7 @@ export default function Certifications() {
         <div className="flex flex-col items-center text-center mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/40 text-amber-600 dark:text-amber-400 text-xs font-extrabold uppercase tracking-wider mb-3 shadow-[0_0_15px_rgba(245,158,11,0.15)]">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Honors & Credentials</span>
+            <span>Hover to Inspect Credentials</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -39,57 +43,91 @@ export default function Certifications() {
           </h2>
 
           <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base max-w-xl mt-3 font-medium leading-relaxed">
-            Verified skill badges, hackathon achievements, and industry certifications.
+            Hover over any certificate card to inspect the official verified image credential!
           </p>
 
           <div className="w-20 h-1.5 bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 rounded-full mt-4" />
         </div>
 
         {/* Badge Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {certsData.map((cert, idx) => {
             const IconComponent = iconMap[cert.icon] || Award;
+            const isHovered = hoveredIndex === idx;
 
             return (
               <div
                 key={idx}
-                className="glass-panel rounded-2xl p-6 neon-border-hover flex flex-col justify-between group shadow-2xl"
+                onMouseEnter={() => setHoveredIndex(idx)}
+                onMouseLeave={() => setHoveredIndex(null)}
+                onClick={() => setSelectedCert(cert)}
+                className="glass-panel rounded-3xl overflow-hidden border border-amber-500/30 neon-border-hover flex flex-col justify-between group cursor-pointer shadow-2xl transition-all duration-300 transform hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(245,158,11,0.2)] relative"
               >
-                <div>
-                  {/* Top Badge Info */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">
-                      <IconComponent className="w-6 h-6" />
+                {/* Certificate Image Banner / Hover Visualizer */}
+                <div className="relative h-48 w-full overflow-hidden bg-slate-950 flex items-center justify-center border-b border-slate-800">
+                  {cert.image ? (
+                    <img 
+                      src={cert.image} 
+                      alt={cert.title} 
+                      className={`w-full h-full object-cover object-top transition-transform duration-500 ${
+                        isHovered ? 'scale-110 filter brightness-105' : 'scale-100 filter opacity-85 group-hover:opacity-100'
+                      }`}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-amber-950 via-slate-900 to-slate-950 flex items-center justify-center p-6 text-center">
+                      <IconComponent className="w-16 h-16 text-amber-500/30" />
                     </div>
-                    <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-extrabold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30">
-                      {cert.badge}
+                  )}
+
+                  {/* Hover Overlay Hint */}
+                  <div className={`absolute inset-0 bg-slate-950/70 backdrop-blur-xs flex flex-col items-center justify-center gap-2 transition-opacity duration-300 ${
+                    isHovered ? 'opacity-100' : 'opacity-0'
+                  }`}>
+                    <div className="p-3 rounded-full bg-amber-500 text-slate-950 shadow-lg transform scale-100 transition-transform">
+                      <Maximize2 className="w-5 h-5 font-bold" />
+                    </div>
+                    <span className="text-xs font-bold text-amber-300 font-mono">
+                      Click to View Full Certificate
                     </span>
                   </div>
 
-                  {/* Cert Title & Issuer */}
-                  <h3 className="font-bold text-lg text-slate-900 dark:text-white group-hover:text-amber-500 transition-colors">
-                    {cert.title}
-                  </h3>
-                  <p className="text-xs font-bold text-amber-600 dark:text-amber-400 mt-1">
-                    {cert.issuer}
-                  </p>
-                  <p className="text-xs text-slate-700 dark:text-slate-200 mt-2 leading-relaxed line-clamp-2">
-                    {cert.description}
-                  </p>
+                  {/* Badge Label Overlay */}
+                  <span className="absolute top-3 right-3 px-3 py-1 rounded-full text-[10px] font-mono font-extrabold bg-slate-900/90 text-amber-400 border border-amber-500/40 backdrop-blur-md shadow-lg">
+                    {cert.badge}
+                  </span>
                 </div>
 
-                {/* Footer Credential */}
-                <div className="mt-6 pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                  <span className="text-[11px] font-mono text-slate-500 dark:text-slate-300 font-semibold">
-                    ID: {cert.credentialId}
-                  </span>
-                  <button
-                    onClick={() => setSelectedCert(cert)}
-                    className="text-xs text-amber-600 dark:text-amber-400 hover:text-amber-500 font-extrabold flex items-center gap-1"
-                  >
-                    <span>Verify</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </button>
+                {/* Card Content Body */}
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-2.5 mb-2">
+                      <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                        <IconComponent className="w-4 h-4" />
+                      </div>
+                      <span className="text-xs font-bold text-amber-500">
+                        {cert.issuer}
+                      </span>
+                    </div>
+
+                    <h3 className="font-bold text-lg text-slate-900 dark:text-white group-hover:text-amber-400 transition-colors line-clamp-2">
+                      {cert.title}
+                    </h3>
+
+                    <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed line-clamp-2 font-medium">
+                      {cert.description}
+                    </p>
+                  </div>
+
+                  {/* Footer Credential Bar */}
+                  <div className="mt-6 pt-3 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between">
+                    <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 font-semibold">
+                      ID: {cert.credentialId}
+                    </span>
+                    <span className="text-xs text-amber-500 hover:text-amber-400 font-extrabold flex items-center gap-1">
+                      <span>View Credential</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </span>
+                  </div>
                 </div>
 
               </div>
@@ -97,49 +135,66 @@ export default function Certifications() {
           })}
         </div>
 
-        {/* Certificate Modal Verification Popup */}
+        {/* Certificate Full Lightbox Modal */}
         {selectedCert && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
-            <div className="relative w-full max-w-lg glass-panel rounded-3xl p-6 border border-amber-500/40 shadow-2xl space-y-5">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-lg animate-fade-in">
+            <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto glass-panel rounded-3xl p-6 sm:p-8 border border-amber-500/50 shadow-2xl space-y-6">
               
-              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-                <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 text-xs font-mono font-bold">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>Credential Verification Record</span>
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div className="flex items-center gap-2 text-amber-400 text-xs font-mono font-bold">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                  <span>Verified Credential Record</span>
                 </div>
                 <button
                   onClick={() => setSelectedCert(null)}
-                  className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400"
+                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
+              {/* Title Info */}
               <div>
-                <span className="text-xs font-mono text-amber-600 dark:text-amber-400 uppercase font-bold">
-                  {selectedCert.issuer}
+                <span className="text-xs font-mono text-amber-400 uppercase font-bold tracking-wider">
+                  {selectedCert.issuer} • {selectedCert.date}
                 </span>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-1">
+                <h3 className="text-2xl font-black text-white mt-1">
                   {selectedCert.title}
                 </h3>
-                <p className="text-xs text-slate-700 dark:text-slate-200 mt-3 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
                   {selectedCert.description}
                 </p>
               </div>
 
-              <div className="bg-slate-100 dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800 font-mono text-xs space-y-1.5 text-slate-800 dark:text-slate-200">
-                <p><span className="text-slate-500 dark:text-slate-400">Recipient:</span> Janardhan Devarala</p>
-                <p><span className="text-slate-500 dark:text-slate-400">Credential ID:</span> <span className="text-amber-600 dark:text-amber-400 font-bold">{selectedCert.credentialId}</span></p>
-                <p><span className="text-slate-500 dark:text-slate-400">Issue Date:</span> {selectedCert.date}</p>
-                <p><span className="text-slate-500 dark:text-slate-400">Status:</span> <span className="text-emerald-600 dark:text-emerald-400 font-bold">100% Verified & Authentic</span></p>
+              {/* Certificate Image View */}
+              {selectedCert.image && (
+                <div className="rounded-2xl overflow-hidden border border-amber-500/40 bg-slate-950 p-2 shadow-2xl max-h-96 flex items-center justify-center">
+                  <img 
+                    src={selectedCert.image} 
+                    alt={selectedCert.title} 
+                    className="max-h-88 w-auto object-contain rounded-xl"
+                  />
+                </div>
+              )}
+
+              {/* Metadata Record */}
+              <div className="bg-slate-900/90 p-4 sm:p-5 rounded-2xl border border-slate-800 font-mono text-xs space-y-2 text-slate-200">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <p><span className="text-slate-400">Recipient:</span> <strong className="text-white">Janardhan Devarala</strong></p>
+                  <p><span className="text-slate-400">Issuer:</span> <strong className="text-amber-400">{selectedCert.issuer}</strong></p>
+                  <p><span className="text-slate-400">Credential ID:</span> <strong className="text-amber-400">{selectedCert.credentialId}</strong></p>
+                  <p><span className="text-slate-400">Verification Status:</span> <strong className="text-emerald-400">100% Authentic & Verified</strong></p>
+                </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2">
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-2">
                 <button
                   onClick={() => setSelectedCert(null)}
-                  className="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs shadow-lg"
+                  className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-lg transition-colors"
                 >
-                  Done
+                  Close Preview
                 </button>
               </div>
 

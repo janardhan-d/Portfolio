@@ -120,6 +120,17 @@
   transform: translateY(-3px);
 }
 
+/* 3D Perspective Card Tilt Utilities */
+.card-3d {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  transition: transform 0.25s ease-out, box-shadow 0.25s ease-out;
+}
+.card-3d:hover {
+  transform: perspective(1000px) rotateX(4deg) rotateY(-4deg) translateZ(10px);
+  box-shadow: 0 25px 50px -12px rgba(245, 158, 11, 0.25);
+}
+
 /* Soundwave Voice Animations */
 @keyframes soundwave1 {
   0%, 100% { height: 6px; }
@@ -157,4 +168,22 @@
   transform: translateX(-100%);
   background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.2), transparent);
   animation: shimmer-sweep 3.5s infinite;
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 3s ease-in-out infinite;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 12s linear infinite;
 }

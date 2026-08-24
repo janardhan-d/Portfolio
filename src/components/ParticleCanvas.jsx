@@ -19,9 +19,9 @@ export default function ParticleCanvas({ isDark = true }) {
 
     window.addEventListener('resize', handleResize);
 
-    const particleCount = Math.min(Math.floor(width / 22), 65);
+    const particleCount = Math.min(Math.floor(width / 20), 75);
     const particles = [];
-    const mouse = { x: null, y: null, radius: 140 };
+    const mouse = { x: null, y: null, radius: 160 };
 
     const handleMouseMove = (e) => {
       mouse.x = e.clientX;
@@ -36,14 +36,15 @@ export default function ParticleCanvas({ isDark = true }) {
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseleave', handleMouseLeave);
 
-    class Particle {
+    class Particle3D {
       constructor() {
         this.x = Math.random() * width;
         this.y = Math.random() * height;
-        this.vx = (Math.random() - 0.5) * 0.7;
-        this.vy = (Math.random() - 0.5) * 0.7;
-        this.size = Math.random() * 2 + 1;
-        this.baseAlpha = Math.random() * 0.5 + 0.2;
+        this.z = Math.random() * 3 + 0.5; // 3D depth scale factor
+        this.vx = (Math.random() - 0.5) * 0.8 * this.z;
+        this.vy = (Math.random() - 0.5) * 0.8 * this.z;
+        this.size = Math.random() * 2.5 * (this.z / 2);
+        this.baseAlpha = (Math.random() * 0.4 + 0.2) * (this.z / 3);
       }
 
       update() {
@@ -61,8 +62,8 @@ export default function ParticleCanvas({ isDark = true }) {
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < mouse.radius) {
             const force = (mouse.radius - dist) / mouse.radius;
-            this.x -= (dx / dist) * force * 2;
-            this.y -= (dy / dist) * force * 2;
+            this.x -= (dx / dist) * force * 3 * this.z;
+            this.y -= (dy / dist) * force * 3 * this.z;
           }
         }
       }
@@ -72,13 +73,13 @@ export default function ParticleCanvas({ isDark = true }) {
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fillStyle = isDark
           ? `rgba(245, 158, 11, ${this.baseAlpha})`
-          : `rgba(217, 119, 6, ${this.baseAlpha * 0.8})`;
+          : `rgba(217, 119, 6, ${this.baseAlpha * 0.85})`;
         ctx.fill();
       }
     }
 
     for (let i = 0; i < particleCount; i++) {
-      particles.push(new Particle());
+      particles.push(new Particle3D());
     }
 
     const render = () => {
@@ -89,16 +90,16 @@ export default function ParticleCanvas({ isDark = true }) {
           const dx = particles[a].x - particles[b].x;
           const dy = particles[a].y - particles[b].y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          const maxDist = 120;
+          const maxDist = 130;
 
           if (dist < maxDist) {
-            const opacity = (1 - dist / maxDist) * 0.25;
+            const opacity = (1 - dist / maxDist) * 0.28;
             ctx.beginPath();
             ctx.moveTo(particles[a].x, particles[a].y);
             ctx.lineTo(particles[b].x, particles[b].y);
             ctx.strokeStyle = isDark
               ? `rgba(245, 158, 11, ${opacity})`
-              : `rgba(217, 119, 6, ${opacity * 0.7})`;
+              : `rgba(217, 119, 6, ${opacity * 0.75})`;
             ctx.lineWidth = 0.8;
             ctx.stroke();
           }
@@ -126,7 +127,7 @@ export default function ParticleCanvas({ isDark = true }) {
   return (
     <canvas
       ref={canvasRef}
-      className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-50 transition-opacity duration-500"
+      className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-60 transition-opacity duration-500"
     />
   );
 }

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="100%" height="100%">
+  <defs>
+    <linearGradient id="apscheBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="goldBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="50%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1000" height="700" fill="url(#apscheBg)"/>
+  <rect x="25" y="25" width="950" height="650" rx="16" fill="none" stroke="url(#goldBorder)" stroke-width="4"/>
+  <rect x="40" y="40" width="920" height="620" rx="12" fill="none" stroke="#f59e0b" stroke-width="1" stroke-dasharray="6,4" opacity="0.6"/>
+
+  <text x="500" y="100" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="700" fill="#f59e0b" letter-spacing="3">APSCHE STUDENT INTERNSHIP INITIATIVE</text>
+  <text x="500" y="130" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="14" fill="#94a3b8">In Collaboration with CSC India & Higher Education Dept.</text>
+
+  <circle cx="500" cy="220" r="50" fill="#f59e0b" opacity="0.15"/>
+  <circle cx="500" cy="220" r="40" fill="none" stroke="#f59e0b" stroke-width="3"/>
+  <polygon points="500,195 510,210 528,210 514,222 519,239 500,228 481,239 486,222 472,210 490,210" fill="#fbbf24"/>
+
+  <text x="500" y="320" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="18" fill="#cbd5e1">This is to certify that</text>
+  <text x="500" y="370" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="38" font-weight="800" fill="#ffffff">JANARDHAN DEVARALA</text>
+
+  <text x="500" y="420" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="16" fill="#94a3b8">has successfully completed the certified internship program on</text>
+  <text x="500" y="465" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="26" font-weight="700" fill="#fbbf24">Data Structures and Algorithms using Python</text>
+
+  <rect x="350" y="500" width="300" height="45" rx="8" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="500" y="528" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#f59e0b">Certificate ID: CSCIndia-663B777P</text>
+
+  <text x="150" y="600" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="14" fill="#94a3b8">Program Coordinator</text>
+  <text x="150" y="620" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">APSCHE India</text>
+
+  <text x="850" y="600" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="14" fill="#94a3b8">Director of Training</text>
+  <text x="850" y="620" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">CSC India Initiative</text>
+</svg>

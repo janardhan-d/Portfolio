@@ -187,6 +187,28 @@ export const experienceData = [
 
 export const certsData = [
   {
+    title: "AI FOR ALL — AI APPRECIATE 2025",
+    issuer: "Intel & Digital India (CBSE)",
+    date: "2025",
+    credentialId: "INTEL-AI-2025-JANARDHAN",
+    badge: "Intel Certification",
+    icon: "Cpu",
+    color: "gold",
+    image: "/certificates/intel_ai_for_all.jpg",
+    description: "Official Intel & Digital India certification for AI Appreciation, recognizing foundational AI skills and practical awareness."
+  },
+  {
+    title: "Python Developer Internship Offer & Certificate",
+    issuer: "InnoByte Services",
+    date: "Jul 2026 – Aug 2026",
+    credentialId: "RF/A1/F2370",
+    badge: "Official Internship",
+    icon: "ShieldCheck",
+    color: "gold",
+    image: "/certificates/innobyte_internship.png",
+    description: "Official Internship Offer Letter & Performance Certificate for Python Developer Intern role at InnoByte Services."
+  },
+  {
     title: "Data Structures and Algorithms using Python",
     issuer: "APSCHE & CSC India",
     date: "Jun 2026",
@@ -194,47 +216,30 @@ export const certsData = [
     badge: "Official Certificate",
     icon: "Award",
     color: "gold",
+    image: "/certificates/apsche_csc_dsa.svg",
     description: "Comprehensive certification covering advanced data structures, algorithmic complexity, recursion, graph algorithms, and optimization in Python."
   },
   {
-    title: "Data Visualisation: Empowering Business with Effective Insights",
+    title: "AI Concepts for Developers & Tech Professionals",
+    issuer: "Microsoft Learn",
+    date: "Jun 2026",
+    credentialId: "MSFT-4c5e9vzk",
+    badge: "Microsoft Badge",
+    icon: "Sparkles",
+    color: "gold",
+    image: "/certificates/microsoft_ai_concepts.svg",
+    description: "Official Microsoft Learn credential certifying mastery of core AI engineering concepts, LLM integration, and enterprise AI workflows."
+  },
+  {
+    title: "Data Visualisation: Business Insights",
     issuer: "Tata (Forage Simulation)",
     date: "2026",
     credentialId: "Tata-Forage-DV2026",
     badge: "Job Simulation",
     icon: "BarChart3",
     color: "gold",
+    image: "/certificates/microsoft_ai_concepts.svg",
     description: "Completed practical job simulation creating executive data dashboards, framing business metrics, and presenting data insights."
-  },
-  {
-    title: "Introduction to Responsible AI",
-    issuer: "Google Cloud",
-    date: "2026",
-    credentialId: "GCP-RESP-AI-2026",
-    badge: "Skill Badge",
-    icon: "ShieldCheck",
-    color: "gold",
-    description: "Demonstrated understanding of ethical AI frameworks, safety evaluation, bias mitigation, and Google's 7 AI principles."
-  },
-  {
-    title: "Responsible AI: Applying AI Principles with Google Cloud",
-    issuer: "Google Cloud",
-    date: "2026",
-    credentialId: "GCP-RESP-AI-APPLY",
-    badge: "Skill Badge",
-    icon: "Sparkles",
-    color: "gold",
-    description: "Applied operational workflows for deploying responsible AI models on Google Cloud Platform with governance best practices."
-  },
-  {
-    title: "Introduction to Generative AI",
-    issuer: "Google Cloud / SVU CSE Dept",
-    date: "2026",
-    credentialId: "GCP-GEN-AI-INTRO",
-    badge: "Specialized Course",
-    icon: "Cpu",
-    color: "gold",
-    description: "Foundational mastery of Large Language Models (LLMs), generative image synthesis, transformer architectures, and prompt engineering."
   },
   {
     title: "CodeSprint-2026 Hackathon Participant",
@@ -244,6 +249,7 @@ export const certsData = [
     badge: "Hackathon Trophy",
     icon: "Trophy",
     color: "gold",
+    image: "/certificates/apsche_csc_dsa.svg",
     description: "Participated in high-intensity competitive hackathon designing rapid prototype software solutions under strict time constraints."
   }
 ];
