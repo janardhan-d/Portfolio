@@ -10,6 +10,7 @@ export default function Avatar3D({
   const [shape, setShape] = useState('circle'); // circle, squircle, capsule, blob
   const [expressionIndex, setExpressionIndex] = useState(0);
   const [colorTheme, setColorTheme] = useState('black'); // black, gold, cyan, purple
+  const [speakMouthOpen, setSpeakMouthOpen] = useState(false);
   
   const expressionsList = ['attentive', 'happy', 'excited', 'surprised', 'wink', 'thinking'];
   const expression = expressionsList[expressionIndex];
@@ -27,6 +28,19 @@ export default function Avatar3D({
   // Eyelid Blinking
   const [isBlinking, setIsBlinking] = useState(false);
   const containerRef = useRef(null);
+
+  // Dynamic speaking mouth flap animation
+  useEffect(() => {
+    let interval = null;
+    if (isSpeaking) {
+      interval = setInterval(() => {
+        setSpeakMouthOpen((prev) => !prev);
+      }, 140);
+    } else {
+      setSpeakMouthOpen(false);
+    }
+    return () => clearInterval(interval);
+  }, [isSpeaking]);
 
   // Cycle expression on click
   const handleBodyClick = (e) => {
@@ -209,6 +223,64 @@ export default function Avatar3D({
     );
   };
 
+  // Dynamic Interactive Mouth Renderer
+  const renderDynamicMouth = () => {
+    if (isSpeaking) {
+      return speakMouthOpen ? (
+        <g transform="translate(0, 24)">
+          <path d="M-14,0 Q0,20 14,0 Z" fill="#04060a" stroke="#fbbf24" strokeWidth="1.5" />
+          <path d="M-10,2 Q0,-2 10,2" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" />
+          <ellipse cx="0" cy="11" rx="6" ry="4" fill="#f43f5e" />
+        </g>
+      ) : (
+        <path d="M-12,24 Q0,30 12,24" fill="none" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" />
+      );
+    }
+
+    if (expression === 'happy') {
+      return (
+        <g transform="translate(0, 22)">
+          <path d="M-15,0 Q0,22 15,0 Z" fill="#04060a" stroke="#ffffff" strokeWidth="1.5" />
+          <path d="M-11,2 Q0,-2 11,2" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" />
+          <ellipse cx="0" cy="12" rx="7" ry="4" fill="#f43f5e" opacity="0.85" />
+        </g>
+      );
+    }
+
+    if (expression === 'excited') {
+      return (
+        <g transform="translate(0, 20)">
+          <path d="M-18,0 Q0,28 18,0 Z" fill="#04060a" stroke="#fbbf24" strokeWidth="2" />
+          <path d="M-13,2 Q0,-3 13,2" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
+          <ellipse cx="0" cy="15" rx="8" ry="5" fill="#f43f5e" />
+        </g>
+      );
+    }
+
+    if (expression === 'surprised') {
+      return (
+        <ellipse cx="0" cy="26" rx="8" ry="11" fill="#04060a" stroke="#fbbf24" strokeWidth="2" />
+      );
+    }
+
+    if (expression === 'thinking') {
+      return (
+        <path d="M-12,26 Q-4,20 4,28 T12,24" fill="none" stroke="#fbbf24" strokeWidth="3.5" strokeLinecap="round" />
+      );
+    }
+
+    if (expression === 'wink') {
+      return (
+        <path d="M-10,24 Q4,32 14,22" fill="none" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" />
+      );
+    }
+
+    // Default Attentive Mouth Curve
+    return (
+      <path d="M-14,25 Q0,33 14,25" fill="none" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" />
+    );
+  };
+
   const getShapePath = () => {
     if (shape === 'squircle') return "M-70,-60 Q0,-80 70,-60 Q85,0 70,60 Q0,80 -70,60 Q-85,0 -70,-60 Z";
     if (shape === 'capsule') return "M-50,-75 Q0,-80 50,-75 Q75,-40 75,40 Q50,80 0,80 Q-50,80 -75,40 Q-75,-40 -50,-75 Z";
@@ -226,6 +298,7 @@ export default function Avatar3D({
             <circle cx="-12" cy="-3" r="3" fill="#04060a" />
             <circle cx="12" cy="-3" r="6" fill="#ffffff" />
             <circle cx="12" cy="-3" r="3" fill="#04060a" />
+            <path d="M-6,12 Q0,17 6,12" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
           </g>
         </svg>
       </div>
@@ -255,7 +328,7 @@ export default function Avatar3D({
           transition: 'transform 0.05s linear'
         }}
         className="relative cursor-pointer w-44 h-44 sm:w-52 sm:h-52 flex items-center justify-center"
-        title="Click Avatar to change mood expression!"
+        title="Click Avatar to change mood & mouth expressions!"
       >
         {/* Glow Aura */}
         <div 
@@ -298,9 +371,12 @@ export default function Avatar3D({
           {/* Render Realistic 3D Eyes */}
           {renderRealistic3DEyes()}
 
+          {/* Render Dynamic Interactive Mouth */}
+          {renderDynamicMouth()}
+
           {/* Audio Speaking Soundwaves */}
           {isSpeaking && (
-            <g transform="translate(0, 48)">
+            <g transform="translate(0, 52)">
               <circle cx="-14" cy="0" r="3" fill="#fbbf24" className="animate-ping"/>
               <circle cx="0" cy="0" r="3" fill="#fbbf24" className="animate-ping delay-100"/>
               <circle cx="14" cy="0" r="3" fill="#fbbf24" className="animate-ping delay-200"/>
@@ -314,10 +390,10 @@ export default function Avatar3D({
         />
       </div>
 
-      {/* Avatar Toolbar Shape Controls (Clean & Subtle, No Mood Text Titles) */}
+      {/* Avatar Toolbar Shape Controls */}
       <div className="mt-3 flex items-center gap-1.5 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800 backdrop-blur-md shadow-lg text-[11px] font-semibold text-slate-300">
         <Eye className="w-3.5 h-3.5 text-amber-400 ml-1" />
-        <span className="text-[10px] text-slate-400 font-mono">Click Avatar to change mood</span>
+        <span className="text-[10px] text-slate-400 font-mono">Click avatar for mouth &amp; mood!</span>
         <div className="h-3 w-px bg-slate-800 mx-1" />
         {['circle', 'squircle', 'capsule', 'blob'].map((s) => (
           <button

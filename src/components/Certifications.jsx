@@ -13,7 +13,11 @@ import {
   FileCheck,
   GraduationCap,
   Cloud,
-  Medal
+  Medal,
+  Terminal,
+  Layers,
+  Flame,
+  Check
 } from 'lucide-react';
 import { certsData } from '../data/portfolioData';
 
@@ -24,6 +28,8 @@ const iconMap = {
   Sparkles: Sparkles,
   Cpu: Cpu,
   Trophy: Trophy,
+  GraduationCap: GraduationCap,
+  Cloud: Cloud
 };
 
 const categoryTabs = [
@@ -59,7 +65,7 @@ export default function Certifications() {
           </h2>
 
           <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base max-w-2xl mt-3 font-medium leading-relaxed">
-            Verified internship completion certificates, hackathon finalist trophies, cloud badges, and job simulations.
+            Verified internship completion credentials, hackathon finalist trophies, cloud badges, and software engineering simulations.
           </p>
 
           <div className="w-20 h-1.5 bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 rounded-full mt-4" />
@@ -88,7 +94,7 @@ export default function Certifications() {
           })}
         </div>
 
-        {/* Aligned Cards Grid */}
+        {/* Aligned Icon & Symbol Badge Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredCerts.map((cert, idx) => {
             const IconComponent = iconMap[cert.icon] || Award;
@@ -102,36 +108,35 @@ export default function Certifications() {
                 onClick={() => setSelectedCert(cert)}
                 className="glass-panel rounded-3xl overflow-hidden border border-amber-500/30 neon-border-hover flex flex-col justify-between group cursor-pointer shadow-2xl transition-all duration-300 transform hover:-translate-y-2 hover:shadow-[0_25px_50px_rgba(245,158,11,0.25)] relative"
               >
-                {/* Certificate Image Banner Header */}
-                <div className="relative h-52 w-full overflow-hidden bg-slate-950 flex items-center justify-center border-b border-slate-800/80 p-2">
-                  {cert.image ? (
-                    <img 
-                      src={cert.image} 
-                      alt={cert.title} 
-                      className={`w-full h-full object-contain transition-transform duration-500 ${
-                        isHovered ? 'scale-105 filter brightness-105' : 'scale-100 opacity-90 group-hover:opacity-100'
-                      }`}
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-amber-950 via-slate-900 to-slate-950 flex items-center justify-center p-6 text-center">
-                      <IconComponent className="w-16 h-16 text-amber-500/30" />
-                    </div>
-                  )}
+                {/* 3D Symbol & Metallic Banner Header */}
+                <div className="relative h-44 w-full bg-gradient-to-br from-amber-950/70 via-slate-950 to-slate-900 flex flex-col items-center justify-center p-6 border-b border-slate-800/80 overflow-hidden">
+                  
+                  {/* Background Radial Glow */}
+                  <div className={`absolute inset-0 bg-gradient-to-tr from-amber-500/10 to-transparent transition-opacity duration-500 ${
+                    isHovered ? 'opacity-100' : 'opacity-40'
+                  }`} />
+
+                  {/* Sleek Glowing 3D Icon Badge Container */}
+                  <div className={`p-4 rounded-2xl bg-slate-900/90 border border-amber-500/50 text-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.25)] transform transition-transform duration-500 z-10 ${
+                    isHovered ? 'scale-110 border-amber-400 shadow-[0_0_35px_rgba(245,158,11,0.45)]' : 'scale-100'
+                  }`}>
+                    <IconComponent className="w-9 h-9" />
+                  </div>
 
                   {/* Hover Overlay Lightbox Trigger */}
-                  <div className={`absolute inset-0 bg-slate-950/75 backdrop-blur-xs flex flex-col items-center justify-center gap-2 transition-opacity duration-300 ${
+                  <div className={`absolute inset-0 bg-slate-950/80 backdrop-blur-xs flex flex-col items-center justify-center gap-2 transition-opacity duration-300 z-20 ${
                     isHovered ? 'opacity-100' : 'opacity-0'
                   }`}>
                     <div className="p-3 rounded-full bg-amber-500 text-slate-950 shadow-xl transform scale-100 hover:scale-110 transition-transform">
                       <Maximize2 className="w-5 h-5 font-bold" />
                     </div>
                     <span className="text-xs font-bold text-amber-300 font-mono tracking-wide">
-                      Click to Inspect Certificate
+                      Click to Inspect Credential
                     </span>
                   </div>
 
                   {/* Top Badge Overlay */}
-                  <span className="absolute top-3 right-3 px-3 py-1 rounded-full text-[10px] font-mono font-extrabold bg-slate-900/90 text-amber-400 border border-amber-500/40 backdrop-blur-md shadow-lg flex items-center gap-1">
+                  <span className="absolute top-3 right-3 px-3 py-1 rounded-full text-[10px] font-mono font-extrabold bg-slate-900/90 text-amber-400 border border-amber-500/40 backdrop-blur-md shadow-lg flex items-center gap-1 z-10">
                     <FileCheck className="w-3 h-3 text-amber-400" />
                     <span>{cert.badge}</span>
                   </span>
@@ -141,10 +146,10 @@ export default function Certifications() {
                 <div className="p-6 flex-1 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                        <IconComponent className="w-4 h-4" />
+                      <div className="p-1 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        <ShieldCheck className="w-3.5 h-3.5" />
                       </div>
-                      <span className="text-xs font-bold text-amber-500 uppercase tracking-wide">
+                      <span className="text-xs font-extrabold text-amber-500 uppercase tracking-wide">
                         {cert.issuer}
                       </span>
                     </div>
@@ -164,7 +169,7 @@ export default function Certifications() {
                       ID: {cert.credentialId}
                     </span>
                     <span className="text-xs text-amber-500 hover:text-amber-400 font-extrabold flex items-center gap-1.5">
-                      <span>View Credential</span>
+                      <span>View Record</span>
                       <ExternalLink className="w-3.5 h-3.5" />
                     </span>
                   </div>
@@ -178,7 +183,7 @@ export default function Certifications() {
         {/* Certificate Full Lightbox Modal */}
         {selectedCert && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-lg animate-fade-in">
-            <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto glass-panel rounded-3xl p-6 sm:p-8 border border-amber-500/50 shadow-2xl space-y-6">
+            <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto glass-panel rounded-3xl p-6 sm:p-8 border border-amber-500/50 shadow-2xl space-y-6">
               
               {/* Header */}
               <div className="flex items-center justify-between border-b border-slate-800 pb-4">
@@ -207,13 +212,13 @@ export default function Certifications() {
                 </p>
               </div>
 
-              {/* Certificate Image View */}
+              {/* Certificate Image Document Preview inside Lightbox */}
               {selectedCert.image && (
                 <div className="rounded-2xl overflow-hidden border border-amber-500/40 bg-slate-950 p-3 shadow-2xl flex items-center justify-center">
                   <img 
                     src={selectedCert.image} 
                     alt={selectedCert.title} 
-                    className="max-h-[500px] w-auto object-contain rounded-xl"
+                    className="max-h-[450px] w-auto object-contain rounded-xl"
                   />
                 </div>
               )}
@@ -234,7 +239,7 @@ export default function Certifications() {
                   onClick={() => setSelectedCert(null)}
                   className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-lg transition-colors"
                 >
-                  Close Preview
+                  Close Record
                 </button>
               </div>
 
