@@ -196,8 +196,7 @@ export const certsData = [
     badge: "Official Internship",
     icon: "ShieldCheck",
     color: "gold",
-    image: "/certificates/innobyte_certificate.png",
-    description: "Official Internship Certificate & Letter of Recommendation for Python Developer Intern role at InnoByte Services, building desktop Finance Manager GUI."
+    description: "Official Internship Completion Certificate & Letter of Recommendation for Python Developer Intern role at InnoByte Services, building desktop Finance Manager GUI."
   },
   {
     title: "Data Structures & Algorithms Virtual Internship",
@@ -208,7 +207,6 @@ export const certsData = [
     badge: "Government Initiative",
     icon: "Award",
     color: "gold",
-    image: "/certificates/csc_india_apsche.png",
     description: "Certified 2-month Virtual Internship covering Python Data Structures, Algorithmic Problem Solving & Complexity under AICTE-APSCHE Initiative."
   },
   {
@@ -220,23 +218,10 @@ export const certsData = [
     badge: "Frontend Internship",
     icon: "ShieldCheck",
     color: "gold",
-    image: "/certificates/innobyte_certificate.png",
     description: "Internship completion certificate for Web Development, React component design, and responsive frontend software architecture."
   },
 
   // --- 🏅 HACKATHONS & COMPETITIONS ---
-  {
-    title: "Smart India Hackathon (SIH) Finalist Certificate",
-    issuer: "Ministry of Education & Govt. of India",
-    date: "2026",
-    credentialId: "SIH-2026-FINALIST",
-    category: "hackathons",
-    badge: "National Finalist",
-    icon: "Trophy",
-    color: "gold",
-    image: "/certificates/sih_finalist.svg",
-    description: "National Finalist recognition at Smart India Hackathon for engineering innovative software solutions for real-world problem statements."
-  },
   {
     title: "SVC Hackathon Top 5 Finalist Certificate",
     issuer: "Sri Venkateswara College (SVCE)",
@@ -246,7 +231,6 @@ export const certsData = [
     badge: "Top 5 Ranking",
     icon: "Trophy",
     color: "gold",
-    image: "/certificates/sih_finalist.svg",
     description: "Achieved Top 5 ranking in competitive hackathon building rapid prototype AI & full-stack web applications under time limits."
   },
   {
@@ -258,7 +242,6 @@ export const certsData = [
     badge: "Hackathon Finalist",
     icon: "Trophy",
     color: "gold",
-    image: "/certificates/sih_finalist.svg",
     description: "Selected as Finalist for technical innovation, live code presentation, and system prototype design."
   },
   {
@@ -270,7 +253,6 @@ export const certsData = [
     badge: "Hackathon Trophy",
     icon: "Trophy",
     color: "gold",
-    image: "/certificates/apsche_csc_dsa.svg",
     description: "Participated in high-intensity competitive hackathon designing rapid prototype software under strict time constraints."
   },
 
@@ -284,19 +266,17 @@ export const certsData = [
     badge: "GCP Skill Badges",
     icon: "Cpu",
     color: "gold",
-    image: "/certificates/google_cloud_badge.svg",
     description: "Verified GCP Skill Badges for Responsible AI, Generative AI, Large Language Models (LLMs), and Prompt Engineering."
   },
   {
     title: "Microsoft Learn — GenAI, Cloud & Big Data Analytics",
     issuer: "Microsoft Learn",
-    date: "Jun 2026",
+    date: "2026",
     credentialId: "MSFT-4c5e9vzk",
     category: "cloud",
     badge: "Microsoft Achievements",
     icon: "Sparkles",
     color: "gold",
-    image: "/certificates/microsoft_ai_concepts.svg",
     description: "Official Microsoft Learn achievements in AI Concepts for Developers, Cloud Computing Fundamentals, and Big Data Analytics."
   },
   {
@@ -308,7 +288,6 @@ export const certsData = [
     badge: "Intel Certification",
     icon: "Cpu",
     color: "gold",
-    image: "/certificates/intel_ai_for_all.jpg",
     description: "Official Intel & Digital India certification for AI Appreciation, recognizing foundational AI skills and practical awareness."
   },
 
@@ -322,7 +301,6 @@ export const certsData = [
     badge: "Job Simulation",
     icon: "BarChart3",
     color: "gold",
-    image: "/certificates/jpmorgan_forage.svg",
     description: "Completed virtual software engineering simulation building core data pipelines, financial backend feeds, and systems analysis."
   },
   {
@@ -334,7 +312,6 @@ export const certsData = [
     badge: "NASSCOM Badge",
     icon: "Award",
     color: "gold",
-    image: "/certificates/google_cloud_badge.svg",
     description: "Verified industry skill badges for Emerging Technologies, Software Engineering, and Digital Competencies."
   }
 ];
