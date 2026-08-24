@@ -187,6 +187,28 @@ export const experienceData = [
 
 export const certsData = [
   {
+    title: "Python Developer Internship Certificate",
+    issuer: "InnoByte Services",
+    date: "Jul 2026 – Aug 2026",
+    credentialId: "RF/A1/F2370",
+    badge: "Official Internship",
+    icon: "ShieldCheck",
+    color: "gold",
+    image: "/certificates/innobyte_certificate.png",
+    description: "Official Internship Certificate & Letter of Recommendation for Python Developer Intern role at InnoByte Services."
+  },
+  {
+    title: "Data Structures & Algorithms Virtual Internship",
+    issuer: "CSC India & AICTE - APSCHE Initiative",
+    date: "May 2026 – Jun 2026",
+    credentialId: "CscIndia-NL55C2RM",
+    badge: "Government Initiative",
+    icon: "Award",
+    color: "gold",
+    image: "/certificates/csc_india_apsche.png",
+    description: "Official Internship Confirmation & Completion Certificate for Data Structures and Algorithms using Python under AICTE - APSCHE Initiative."
+  },
+  {
     title: "AI FOR ALL — AI APPRECIATE 2025",
     issuer: "Intel & Digital India (CBSE)",
     date: "2025",
@@ -198,28 +220,6 @@ export const certsData = [
     description: "Official Intel & Digital India certification for AI Appreciation, recognizing foundational AI skills and practical awareness."
   },
   {
-    title: "Python Developer Internship Offer & Certificate",
-    issuer: "InnoByte Services",
-    date: "Jul 2026 – Aug 2026",
-    credentialId: "RF/A1/F2370",
-    badge: "Official Internship",
-    icon: "ShieldCheck",
-    color: "gold",
-    image: "/certificates/innobyte_internship.png",
-    description: "Official Internship Offer Letter & Performance Certificate for Python Developer Intern role at InnoByte Services."
-  },
-  {
-    title: "Data Structures and Algorithms using Python",
-    issuer: "APSCHE & CSC India",
-    date: "Jun 2026",
-    credentialId: "CSCIndia-663B777P",
-    badge: "Official Certificate",
-    icon: "Award",
-    color: "gold",
-    image: "/certificates/apsche_csc_dsa.svg",
-    description: "Comprehensive certification covering advanced data structures, algorithmic complexity, recursion, graph algorithms, and optimization in Python."
-  },
-  {
     title: "AI Concepts for Developers & Tech Professionals",
     issuer: "Microsoft Learn",
     date: "Jun 2026",
@@ -229,27 +229,5 @@ export const certsData = [
     color: "gold",
     image: "/certificates/microsoft_ai_concepts.svg",
     description: "Official Microsoft Learn credential certifying mastery of core AI engineering concepts, LLM integration, and enterprise AI workflows."
-  },
-  {
-    title: "Data Visualisation: Business Insights",
-    issuer: "Tata (Forage Simulation)",
-    date: "2026",
-    credentialId: "Tata-Forage-DV2026",
-    badge: "Job Simulation",
-    icon: "BarChart3",
-    color: "gold",
-    image: "/certificates/microsoft_ai_concepts.svg",
-    description: "Completed practical job simulation creating executive data dashboards, framing business metrics, and presenting data insights."
-  },
-  {
-    title: "CodeSprint-2026 Hackathon Participant",
-    issuer: "Team Synapse",
-    date: "2026",
-    credentialId: "CODESPRINT-2026-SYN",
-    badge: "Hackathon Trophy",
-    icon: "Trophy",
-    color: "gold",
-    image: "/certificates/apsche_csc_dsa.svg",
-    description: "Participated in high-intensity competitive hackathon designing rapid prototype software solutions under strict time constraints."
   }
 ];
