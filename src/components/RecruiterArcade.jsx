@@ -20,7 +20,8 @@ import {
   ArrowDown,
   ArrowLeft,
   ArrowRight,
-  Pause
+  Pause,
+  Gauge
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -93,6 +94,7 @@ export default function RecruiterArcade({ isOpen, onClose }) {
   const [food, setFood] = useState({ x: 12, y: 8 });
   const [isGoldFood, setIsGoldFood] = useState(false);
   const [direction, setDirection] = useState('RIGHT');
+  const [difficulty, setDifficulty] = useState('normal'); // 'easy', 'normal', 'hard'
   const [snakeScore, setSnakeScore] = useState(0);
   const [snakeHighScore, setSnakeHighScore] = useState(() => {
     return parseInt(localStorage.getItem('snake_highscore') || '0', 10);
@@ -101,7 +103,13 @@ export default function RecruiterArcade({ isOpen, onClose }) {
   const [snakeGameOver, setSnakeGameOver] = useState(false);
   const directionRef = useRef('RIGHT');
 
-  // Change Direction helper
+  // Speed tick map
+  const speedMap = {
+    easy: 200,   // Slow & relaxed
+    normal: 140, // Medium balanced
+    hard: 85     // Fast & intense
+  };
+
   const changeSnakeDirection = (newDir) => {
     const opposites = { UP: 'DOWN', DOWN: 'UP', LEFT: 'RIGHT', RIGHT: 'LEFT' };
     if (opposites[newDir] !== directionRef.current) {
@@ -168,7 +176,9 @@ export default function RecruiterArcade({ isOpen, onClose }) {
         // Check Food Collision
         const newSnake = [head, ...prevSnake];
         if (head.x === food.x && head.y === food.y) {
-          const addedScore = isGoldFood ? 30 : 10;
+          const multiplier = difficulty === 'hard' ? 3 : difficulty === 'normal' ? 2 : 1;
+          const addedScore = (isGoldFood ? 30 : 10) * multiplier;
+
           setSnakeScore((s) => {
             const nextS = s + addedScore;
             if (nextS > snakeHighScore) {
@@ -178,7 +188,6 @@ export default function RecruiterArcade({ isOpen, onClose }) {
             return nextS;
           });
 
-          // Generate new food
           generateFood(newSnake);
         } else {
           newSnake.pop();
@@ -186,10 +195,10 @@ export default function RecruiterArcade({ isOpen, onClose }) {
 
         return newSnake;
       });
-    }, 120);
+    }, speedMap[difficulty]);
 
     return () => clearInterval(tick);
-  }, [snakeRunning, snakeGameOver, food, isGoldFood, snakeHighScore]);
+  }, [snakeRunning, snakeGameOver, food, isGoldFood, snakeHighScore, difficulty]);
 
   const generateFood = (currentSnake) => {
     let newX, newY;
@@ -221,7 +230,7 @@ export default function RecruiterArcade({ isOpen, onClose }) {
   const handleSnakeGameOver = () => {
     setSnakeRunning(false);
     setSnakeGameOver(true);
-    confetti({ particleCount: 50, spread: 60 });
+    confetti({ particleCount: 60, spread: 70 });
   };
 
   // ==========================================
@@ -319,13 +328,32 @@ export default function RecruiterArcade({ isOpen, onClose }) {
         });
         setFlippedCards([]);
       } else {
-        setTimeout(() => setFlippedCards([]), 900);
+        setTimeout(() => setFlippedCards([]), 850);
       }
     }
   };
 
   // ==========================================
-  // --- GAME 4: Bug Smasher Logic ---
+  // --- GAME 4: LLM Prompt Tuner Logic ---
+  // ==========================================
+  const [promptIdx, setPromptIdx] = useState(0);
+  const [tempVal, setTempVal] = useState(0.7);
+  const [topPVal, setTopPVal] = useState(0.9);
+  const [promptEvaluated, setPromptEvaluated] = useState(false);
+  const [promptPassed, setPromptPassed] = useState(false);
+
+  const evaluatePromptSettings = () => {
+    setPromptEvaluated(true);
+    if (tempVal <= 0.3 && topPVal >= 0.8) {
+      setPromptPassed(true);
+      confetti({ particleCount: 70, spread: 70 });
+    } else {
+      setPromptPassed(false);
+    }
+  };
+
+  // ==========================================
+  // --- GAME 5: Bug Smasher Logic ---
   // ==========================================
   const [bugs, setBugs] = useState(bugItemsList);
   const [smashedScore, setSmashedScore] = useState(0);
@@ -424,9 +452,9 @@ export default function RecruiterArcade({ isOpen, onClose }) {
         {/* ============================================================ */}
         {activeTab === 'snake' && (
           <div className="space-y-6">
-            {/* Top Score Dashboard */}
-            <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-900/90 border border-amber-500/30">
-              <div className="flex items-center gap-6">
+            {/* Top Score & Speed Difficulty Dashboard */}
+            <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-slate-900/90 border border-amber-500/30">
+              <div className="flex items-center gap-5">
                 <div>
                   <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">Current Score</span>
                   <p className="text-2xl font-black text-amber-400 font-mono">{snakeScore}</p>
@@ -436,6 +464,28 @@ export default function RecruiterArcade({ isOpen, onClose }) {
                   <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">High Score</span>
                   <p className="text-2xl font-black text-amber-500 font-mono">{snakeHighScore}</p>
                 </div>
+              </div>
+
+              {/* Difficulty Speed Selector */}
+              <div className="flex items-center gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
+                <Gauge className="w-4 h-4 text-amber-400 ml-1.5" />
+                {[
+                  { id: 'easy', label: 'Easy (Slow)' },
+                  { id: 'normal', label: 'Normal' },
+                  { id: 'hard', label: 'Hard (Fast)' }
+                ].map((d) => (
+                  <button
+                    key={d.id}
+                    onClick={() => setDifficulty(d.id)}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                      difficulty === d.id
+                        ? 'bg-amber-500 text-slate-950 shadow-md'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {d.label}
+                  </button>
+                ))}
               </div>
 
               {!snakeRunning ? (
@@ -457,7 +507,7 @@ export default function RecruiterArcade({ isOpen, onClose }) {
               )}
             </div>
 
-            {/* Snake 16x16 Grid Box with Explicit Inline CSS Grid */}
+            {/* Snake 16x16 Grid Box */}
             <div 
               className="relative mx-auto w-full max-w-md aspect-square bg-slate-950 rounded-2xl border-2 border-amber-500/50 overflow-hidden shadow-[0_0_30px_rgba(245,158,11,0.2)] p-2"
               style={{
@@ -480,7 +530,7 @@ export default function RecruiterArcade({ isOpen, onClose }) {
                     key={i}
                     className={`w-full h-full rounded-xs transition-all duration-75 ${
                       isHead
-                        ? 'bg-amber-400 shadow-[0_0_12px_#f59e0b] scale-105 z-10 font-bold flex items-center justify-center'
+                        ? 'bg-amber-400 shadow-[0_0_12px_#f59e0b] scale-105 z-10 flex items-center justify-center'
                         : isBody
                         ? 'bg-amber-500/80 border border-amber-400/40 rounded-xs'
                         : isFoodItem
@@ -562,6 +612,10 @@ export default function RecruiterArcade({ isOpen, onClose }) {
                 <div>
                   <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">Snippets Passed</span>
                   <p className="text-2xl font-black text-white font-mono">{completedCount}</p>
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">Score (WPM)</span>
+                  <p className="text-2xl font-black text-amber-500 font-mono">{scoreWpm}</p>
                 </div>
               </div>
 
@@ -691,6 +745,27 @@ export default function RecruiterArcade({ isOpen, onClose }) {
                     className="w-full accent-amber-500"
                   />
                 </div>
+
+                <div className="pt-2 flex justify-end">
+                  <button
+                    onClick={evaluatePromptSettings}
+                    className="px-5 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-black text-xs shadow-lg"
+                  >
+                    Test LLM Generation
+                  </button>
+                </div>
+
+                {promptEvaluated && (
+                  <div className={`p-4 rounded-xl border font-mono text-xs font-bold ${
+                    promptPassed 
+                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' 
+                      : 'bg-rose-500/20 border-rose-500 text-rose-300'
+                  }`}>
+                    {promptPassed 
+                      ? "✅ Perfect LLM Parameters! 100% Deterministic Python Code Generated." 
+                      : "⚠️ Hallucination Risk! Lower Temperature <= 0.3 for exact Python syntax."}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -702,9 +777,15 @@ export default function RecruiterArcade({ isOpen, onClose }) {
         {activeTab === 'bugs' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-900 border border-slate-800">
-              <div>
-                <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">Score</span>
-                <p className="text-2xl font-black text-amber-400 font-mono">{smashedScore}</p>
+              <div className="flex items-center gap-6">
+                <div>
+                  <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">Time Left</span>
+                  <p className="text-2xl font-black text-amber-400 font-mono">{bugsTimeLeft}s</p>
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">Score</span>
+                  <p className="text-2xl font-black text-amber-500 font-mono">{smashedScore}</p>
+                </div>
               </div>
 
               <button

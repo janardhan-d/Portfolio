@@ -23,6 +23,7 @@ export default function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isArcadeOpen, setIsArcadeOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   // Track visit in local SQLite database on app load
   useEffect(() => {
@@ -36,9 +37,15 @@ export default function App() {
     recordLocalVisit();
   }, []);
 
-  // Active section scroll tracking
+  // Active section & Scroll progress tracking
   useEffect(() => {
     const handleScroll = () => {
+      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (totalHeight > 0) {
+        const progress = (window.scrollY / totalHeight) * 100;
+        setScrollProgress(progress);
+      }
+
       const scrollPosition = window.scrollY + 200;
       for (let i = sectionsList.length - 1; i >= 0; i--) {
         const el = document.getElementById(sectionsList[i]);
@@ -55,6 +62,13 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen selection:bg-amber-400 selection:text-slate-950">
+      
+      {/* Trending Top Scroll Progress Bar */}
+      <div 
+        className="fixed top-0 left-0 h-1 bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 z-50 transition-all duration-150 shadow-[0_0_10px_#f59e0b]"
+        style={{ width: `${scrollProgress}%` }}
+      />
+
       {/* Dynamic Reactive Particle Canvas */}
       <ParticleCanvas isDark={theme === 'dark'} />
 
