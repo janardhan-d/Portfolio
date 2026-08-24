@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   X,
+  Bot,
   BrainCircuit,
   Code2,
   Sparkles,
@@ -13,30 +14,39 @@ import {
   ArrowRight,
   RotateCcw,
   History,
-  Bot,
   Zap,
-  BarChart2,
-  FileText,
   Download,
   ChevronDown,
   ChevronUp,
   Cpu,
   Layers,
   Terminal,
-  Clock
+  Clock,
+  Flame,
+  BookOpen,
+  Play,
+  ShieldCheck,
+  Upload
 } from 'lucide-react';
-import { quizTopics, prebuiltQuestions, generateAIQuizFromPrompt } from '../../data/quizData';
+import {
+  quizCategories,
+  prebuiltQuestions,
+  generateAIQuizFromPrompt,
+  getAITutorStepByStepExplanation,
+  generateFlashcardsFromMissedQuestions
+} from '../../data/quizData';
 
 export default function QuizHubModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
-  // View state: 'selector' | 'custom_ai' | 'quiz' | 'scorecard' | 'history'
-  const [activeTab, setActiveTab] = useState('selector');
+  // View state: 'dashboard' | 'quiz_hub' | 'custom_ai' | 'quiz' | 'scorecard' | 'flashcards' | 'sandbox' | 'history'
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   // Quiz Configuration State
-  const [selectedTopic, setSelectedTopic] = useState(quizTopics[0]);
+  const [selectedCategory, setSelectedCategory] = useState(quizCategories[0]);
   const [difficulty, setDifficulty] = useState('Intermediate');
-  const [timerMode, setTimerMode] = useState(60); // 60s per question, 0 = untimed
+  const [questionType, setQuestionType] = useState('All');
+  const [timerMode, setTimerMode] = useState(60);
   const [customPrompt, setCustomPrompt] = useState('');
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [generationStep, setGenerationStep] = useState('');
@@ -44,23 +54,45 @@ export default function QuizHubModal({ isOpen, onClose }) {
   // Active Quiz State
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
-  const [userAnswers, setUserAnswers] = useState({}); // { questionIdx: optionIdx }
-  const [flaggedQuestions, setFlaggedQuestions] = useState({}); // { questionIdx: true }
+  const [userAnswers, setUserAnswers] = useState({});
+  const [confidenceRatings, setConfidenceRatings] = useState({});
+  const [flaggedQuestions, setFlaggedQuestions] = useState({});
   const [timeLeft, setTimeLeft] = useState(60);
   const [quizStartTime, setQuizStartTime] = useState(null);
-  const [totalTimeSpent, setTotalTimeSpent] = useState(0);
 
-  // Scorecard & Database History State
+  // AI Tutor Drawer State
+  const [isAITutorOpen, setIsAITutorOpen] = useState(false);
+  const [aiTutorBreakdown, setAiTutorBreakdown] = useState(null);
+
+  // Scorecard, Flashcards, Certificate State
   const [scoreResult, setScoreResult] = useState(null);
+  const [flashcardDeck, setFlashcardDeck] = useState([]);
+  const [flippedCardIdx, setFlippedCardIdx] = useState(null);
+  const [isCertificateOpen, setIsCertificateOpen] = useState(false);
   const [quizHistory, setQuizHistory] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [expandedReviewIdx, setExpandedReviewIdx] = useState(null);
 
-  // Fetch saved quiz history from backend API when switching to history tab
+  // Code Sandbox State
+  const [sandboxCode, setSandboxCode] = useState(`// JavaScript Code Sandbox
+function searchTarget(arr, target) {
+  let left = 0, right = arr.length - 1;
+  while (left <= right) {
+    let mid = Math.floor((left + right) / 2);
+    if (arr[mid] === target) return mid;
+    if (arr[mid] < target) left = mid + 1;
+    else right = mid - 1;
+  }
+  return -1;
+}
+
+console.log("Search Result Index:", searchTarget([10, 20, 30, 40, 50], 30));`);
+  const [sandboxLogs, setSandboxLogs] = useState([]);
+
+  // Fetch History
   useEffect(() => {
-    if (activeTab === 'history') {
-      fetchHistory();
-    }
+    fetchHistory();
+    setFlashcardDeck(generateFlashcardsFromMissedQuestions([]));
   }, [activeTab]);
 
   const fetchHistory = async () => {
@@ -72,13 +104,13 @@ export default function QuizHubModal({ isOpen, onClose }) {
         setQuizHistory(data.history || []);
       }
     } catch (err) {
-      console.warn('Could not fetch quiz history from backend API:', err);
+      console.warn('Could not fetch quiz history:', err);
     } finally {
       setIsLoadingHistory(false);
     }
   };
 
-  // Live Timer Countdown Effect during Quiz Session
+  // Live Timer Countdown Effect
   useEffect(() => {
     let timer = null;
     if (activeTab === 'quiz' && timerMode > 0 && timeLeft > 0) {
@@ -95,26 +127,31 @@ export default function QuizHubModal({ isOpen, onClose }) {
     return () => clearInterval(timer);
   }, [activeTab, timerMode, timeLeft, currentQuestionIdx]);
 
-  // Start Pre-built Quiz
-  const handleStartPrebuiltQuiz = (topic) => {
-    setSelectedTopic(topic);
-    const qList = prebuiltQuestions[topic.id] || prebuiltQuestions.dsa;
+  // Start Prebuilt Quiz
+  const handleStartPrebuiltQuiz = (cat) => {
+    setSelectedCategory(cat);
+    let qList = prebuiltQuestions[cat.id] || prebuiltQuestions.dsa;
+    if (questionType !== 'All') {
+      const filtered = qList.filter(q => q.type === questionType.toLowerCase());
+      if (filtered.length > 0) qList = filtered;
+    }
     setQuestions(qList);
     setCurrentQuestionIdx(0);
     setUserAnswers({});
+    setConfidenceRatings({});
     setFlaggedQuestions({});
     setTimeLeft(timerMode > 0 ? timerMode : 0);
     setQuizStartTime(Date.now());
     setActiveTab('quiz');
   };
 
-  // Start Custom AI Prompt Generated Quiz
+  // Start Custom AI Generated Quiz
   const handleGenerateCustomAIQuiz = async (e) => {
     e.preventDefault();
     if (!customPrompt.trim()) return;
 
     setIsGeneratingAI(true);
-    setGenerationStep('Parsing topic semantics and concept dependencies...');
+    setGenerationStep('Parsing prompt context & topic semantics...');
     await new Promise((r) => setTimeout(r, 600));
 
     setGenerationStep('Synthesizing adaptive distractor choices & code snippets...');
@@ -124,15 +161,16 @@ export default function QuizHubModal({ isOpen, onClose }) {
     await new Promise((r) => setTimeout(r, 500));
 
     const generated = generateAIQuizFromPrompt(customPrompt, difficulty);
-    setSelectedTopic({
+    setSelectedCategory({
       id: 'custom_ai',
       title: customPrompt.trim(),
       badge: 'Custom AI',
-      color: 'from-amber-400 to-yellow-500'
+      color: 'from-red-600 to-rose-600'
     });
     setQuestions(generated);
     setCurrentQuestionIdx(0);
     setUserAnswers({});
+    setConfidenceRatings({});
     setFlaggedQuestions({});
     setTimeLeft(timerMode > 0 ? timerMode : 0);
     setQuizStartTime(Date.now());
@@ -148,6 +186,14 @@ export default function QuizHubModal({ isOpen, onClose }) {
     }));
   };
 
+  // Set Confidence Rating
+  const handleSetConfidence = (rating) => {
+    setConfidenceRatings((prev) => ({
+      ...prev,
+      [currentQuestionIdx]: rating
+    }));
+  };
+
   // Toggle Flag Question
   const handleToggleFlag = () => {
     setFlaggedQuestions((prev) => ({
@@ -156,7 +202,14 @@ export default function QuizHubModal({ isOpen, onClose }) {
     }));
   };
 
-  // Advance or Submit Quiz
+  // Open AI Tutor Explanation
+  const handleOpenAITutor = (q = questions[currentQuestionIdx], ansIdx = userAnswers[currentQuestionIdx]) => {
+    const breakdown = getAITutorStepByStepExplanation(q, ansIdx ?? -1);
+    setAiTutorBreakdown({ question: q, breakdown });
+    setIsAITutorOpen(true);
+  };
+
+  // Advance or Submit
   const handleNextOrSubmit = () => {
     if (currentQuestionIdx < questions.length - 1) {
       setCurrentQuestionIdx((prev) => prev + 1);
@@ -166,53 +219,54 @@ export default function QuizHubModal({ isOpen, onClose }) {
     }
   };
 
-  // Evaluate Quiz Results & Generate AI Feedback
+  // Evaluate Quiz Results
   const evaluateQuiz = async () => {
     const timeSpent = Math.round((Date.now() - (quizStartTime || Date.now())) / 1000);
-    setTotalTimeSpent(timeSpent);
 
     let correctCount = 0;
+    const missedList = [];
     questions.forEach((q, idx) => {
       if (userAnswers[idx] === q.correctAnswerIndex) {
         correctCount++;
+      } else {
+        missedList.push(q);
       }
     });
 
     const percentage = Math.round((correctCount / questions.length) * 100);
 
-    // Performance Tier Title
-    let tier = 'Novice Explorer';
+    let tier = 'Novice Practitioner';
     if (percentage === 100) tier = '🏆 Master CS & AI Architect';
     else if (percentage >= 80) tier = '⚡ Senior Tech Lead';
     else if (percentage >= 60) tier = '💡 Proficient Engineer';
-    else if (percentage >= 40) tier = '🌱 Developing Practitioner';
+    else if (percentage >= 40) tier = '🌱 Developing Developer';
 
-    // Generate Written AI Evaluation Review
     let aiEvaluation = '';
     if (percentage >= 80) {
-      aiEvaluation = `Exceptional mastery demonstrated in ${selectedTopic.title}! You correctly identified core algorithmic bottlenecks, syntax semantics, and architectural constraints. Recommended next step: Explore advanced distributed consensus and deep LLM RAG pipelines.`;
+      aiEvaluation = `Exceptional performance in ${selectedCategory.title}! You demonstrated strong mastery in execution paths and system design constraints. Recommended next step: Explore distributed consensus & deep transformer fine-tuning.`;
     } else if (percentage >= 50) {
-      aiEvaluation = `Solid foundational performance in ${selectedTopic.title}. You showed strong reasoning in basic concepts, but missed key edge-case complexities under timed conditions. Recommended next step: Practice Big-O recursion depth and state mutation mechanics.`;
+      aiEvaluation = `Solid foundational performance in ${selectedCategory.title}. You showed good logic, but missed edge-case constraints under timed pressure. Recommended next step: Revisit Big-O bounds and non-mutating state patterns.`;
     } else {
-      aiEvaluation = `Good effort on ${selectedTopic.title}. Your answers reflect familiarity with terms, but core conceptual patterns require review. Recommended next step: Revisit fundamental data structure traversals and REST API request lifecycles.`;
+      aiEvaluation = `Good practice effort on ${selectedCategory.title}. Review core language syntax and async event-loop mechanics to strengthen accuracy. Recommended next step: Practice generated flashcard deck.`;
     }
 
     const resultObj = {
-      topicId: selectedTopic.id,
-      topicName: selectedTopic.title,
+      topicId: selectedCategory.id,
+      topicName: selectedCategory.title,
       difficulty,
       score: correctCount,
       totalQuestions: questions.length,
       percentage,
       timeSpentSeconds: timeSpent,
+      confidenceRating: confidenceRatings[0] || '100% Sure',
       tier,
       aiEvaluation
     };
 
     setScoreResult(resultObj);
+    setFlashcardDeck(generateFlashcardsFromMissedQuestions(missedList));
     setActiveTab('scorecard');
 
-    // Post Result to Backend Express SQLite API
     try {
       await fetch('http://localhost:5000/api/quiz/submit', {
         method: 'POST',
@@ -220,72 +274,68 @@ export default function QuizHubModal({ isOpen, onClose }) {
         body: JSON.stringify(resultObj)
       });
     } catch (err) {
-      console.warn('Could not persist quiz result to SQLite API server:', err);
+      console.warn('Could not save result to SQLite API:', err);
     }
   };
 
-  // Export Scorecard as JSON
+  // Run Sandbox
+  const handleRunSandbox = () => {
+    let logs = [];
+    const customConsole = { log: (...args) => logs.push(args.join(' ')) };
+    try {
+      new Function('console', sandboxCode)(customConsole);
+      setSandboxLogs(logs.length > 0 ? logs : ['Execution completed successfully.']);
+    } catch (err) {
+      setSandboxLogs([`[Error]: ${err.message}`]);
+    }
+  };
+
+  // Export JSON
   const handleExportJSON = () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
       title: "Smart AI Quiz & Assessment Scorecard",
       timestamp: new Date().toISOString(),
-      topic: selectedTopic.title,
+      student: "Janardhan Devarala",
+      topic: selectedCategory.title,
       difficulty,
       score: `${scoreResult.score} / ${scoreResult.totalQuestions} (${scoreResult.percentage}%)`,
       tier: scoreResult.tier,
-      aiEvaluation: scoreResult.aiEvaluation,
-      breakdown: questions.map((q, idx) => ({
-        question: q.question,
-        userAnswer: q.options[userAnswers[idx]] || 'Not Answered',
-        correctAnswer: q.options[q.correctAnswerIndex],
-        isCorrect: userAnswers[idx] === q.correctAnswerIndex,
-        explanation: q.explanation
-      }))
+      aiEvaluation: scoreResult.aiEvaluation
     }, null, 2));
 
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `quiz_scorecard_${selectedTopic.id}_${Date.now()}.json`);
+    downloadAnchor.setAttribute("download", `quiz_scorecard_${selectedCategory.id}_${Date.now()}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
   };
 
-  const getTopicIcon = (iconName) => {
-    switch (iconName) {
-      case 'BrainCircuit': return <BrainCircuit className="w-6 h-6" />;
-      case 'Code2': return <Code2 className="w-6 h-6" />;
-      case 'Sparkles': return <Sparkles className="w-6 h-6" />;
-      case 'Database': return <Database className="w-6 h-6" />;
-      default: return <Cpu className="w-6 h-6" />;
-    }
-  };
-
   const currentQ = questions[currentQuestionIdx];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/90 backdrop-blur-md animate-fadeIn">
-      <div className="relative w-full max-w-4xl bg-[#0b0f19] rounded-3xl border border-amber-500/40 shadow-[0_0_50px_rgba(245,158,11,0.15)] overflow-hidden max-h-[92vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/90 backdrop-blur-md animate-fadeIn">
+      <div className="relative w-full max-w-5xl bg-[#080a11] rounded-3xl border border-red-500/40 shadow-[0_0_50px_rgba(220,38,38,0.2)] overflow-hidden max-h-[92vh] flex flex-col text-slate-100">
 
         {/* Modal Header */}
-        <div className="p-4 sm:p-6 bg-slate-950 border-b border-amber-500/30 flex items-center justify-between">
+        <div className="p-4 sm:p-5 bg-[#0c0f1a] border-b border-red-500/30 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 p-0.5 shadow-lg shadow-amber-500/20">
-              <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-amber-400">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-red-600 via-rose-600 to-red-500 p-0.5 shadow-lg shadow-red-600/30">
+              <div className="w-full h-full bg-[#080a11] rounded-[14px] flex items-center justify-center text-red-500">
                 <Bot className="w-5 h-5" />
               </div>
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-lg sm:text-xl font-black text-white tracking-tight">
+                <h3 className="text-lg font-black text-white tracking-tight">
                   Smart AI Quiz & Assessment Hub
                 </h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                  v2.6 Live
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-red-500/20 text-red-400 border border-red-500/40">
+                  Red & Black Edition
                 </span>
               </div>
-              <p className="text-xs text-amber-300/80 font-mono">
-                Full-Stack Interactive Platform & Express SQLite Backend
+              <p className="text-xs text-rose-300/80 font-mono">
+                Interactive Learning Workspace • Express & SQLite Backend
               </p>
             </div>
           </div>
@@ -298,588 +348,348 @@ export default function QuizHubModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        {/* View Navigation Bar (Hidden during active quiz) */}
+        {/* Navigation Bar */}
         {activeTab !== 'quiz' && (
-          <div className="px-4 sm:px-6 py-3 bg-slate-900/80 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setActiveTab('selector')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all ${
-                  activeTab === 'selector'
-                    ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
-                }`}
-              >
-                <Layers className="w-3.5 h-3.5" />
-                <span>Topic Collections</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('custom_ai')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all ${
-                  activeTab === 'custom_ai'
-                    ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
-                }`}
-              >
-                <Zap className="w-3.5 h-3.5" />
-                <span>AI Prompt Generator</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('history')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all ${
-                  activeTab === 'history'
-                    ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
-                }`}
-              >
-                <History className="w-3.5 h-3.5" />
-                <span>Database History</span>
-              </button>
+          <div className="px-4 py-2.5 bg-[#0b0e17] border-b border-red-500/20 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {[
+                { id: 'dashboard', label: 'Dashboard' },
+                { id: 'quiz_hub', label: 'Quiz Hub' },
+                { id: 'custom_ai', label: 'AI Prompt Generator' },
+                { id: 'flashcards', label: 'AI Flashcards' },
+                { id: 'sandbox', label: 'Code Sandbox' },
+                { id: 'history', label: 'Database History' }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                    activeTab === tab.id
+                      ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-md shadow-red-600/30'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
 
-            <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-slate-400">
-              <Timer className="w-3.5 h-3.5 text-amber-400" />
-              <span>Timer: {timerMode > 0 ? `${timerMode}s / Q` : 'Untimed'}</span>
+            <div className="flex items-center gap-1.5 font-mono text-red-400 font-bold">
+              <Flame className="w-4 h-4 text-red-500 animate-pulse" />
+              <span>7 Day Streak</span>
             </div>
           </div>
         )}
 
-        {/* Modal Body Content Area */}
-        <div className="p-4 sm:p-6 overflow-y-auto flex-1 bg-[#0b0f19]">
+        {/* Modal Body */}
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 bg-[#080a11]">
 
-          {/* VIEW 1: TOPIC SELECTOR & CONFIGURATOR */}
-          {activeTab === 'selector' && (
+          {/* DASHBOARD */}
+          {activeTab === 'dashboard' && (
             <div className="space-y-6 animate-fadeIn">
-              
-              {/* Configuration Controls Bar */}
-              <div className="p-4 rounded-2xl bg-slate-950/80 border border-amber-500/20 flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
-                    Difficulty:
-                  </span>
-                  <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-800">
-                    {['Beginner', 'Intermediate', 'Advanced'].map((diff) => (
-                      <button
-                        key={diff}
-                        onClick={() => setDifficulty(diff)}
-                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                          difficulty === diff
-                            ? 'bg-amber-500 text-slate-950 shadow'
-                            : 'text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        {diff}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
-                    Timer Mode:
-                  </span>
-                  <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-800">
-                    {[
-                      { label: '45s Timed', val: 45 },
-                      { label: '60s Standard', val: 60 },
-                      { label: 'Zen Mode', val: 0 }
-                    ].map((t) => (
-                      <button
-                        key={t.val}
-                        onClick={() => setTimerMode(t.val)}
-                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                          timerMode === t.val
-                            ? 'bg-amber-500 text-slate-950 shadow'
-                            : 'text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        {t.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Topic Collection Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {quizTopics.map((topic) => (
-                  <div
-                    key={topic.id}
-                    className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-amber-500/50 transition-all group flex flex-col justify-between space-y-4 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)]"
+              <div className="p-6 rounded-3xl bg-[#0c0f1a] border border-red-500/30 space-y-3">
+                <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-red-500/20 text-rose-300 border border-red-500/40">
+                  AI Recommendation Active
+                </span>
+                <h3 className="text-2xl font-black text-white">
+                  Welcome Back, <span className="bg-gradient-to-r from-red-500 via-rose-500 to-red-400 bg-clip-text text-transparent">Janardhan</span> 🚀
+                </h3>
+                <p className="text-xs text-slate-300">
+                  Recommended focus: Data Structures & Dynamic Programming optimizations.
+                </p>
+                <div className="pt-2 flex gap-3">
+                  <button
+                    onClick={() => setActiveTab('quiz_hub')}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 text-white text-xs font-black flex items-center gap-2"
                   >
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30 group-hover:scale-110 transition-transform">
-                          {getTopicIcon(topic.icon)}
-                        </div>
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                          {topic.badge}
-                        </span>
-                      </div>
-
-                      <h4 className="text-lg font-black text-white group-hover:text-amber-400 transition-colors">
-                        {topic.title}
-                      </h4>
-                      <p className="text-xs text-slate-400 leading-relaxed mt-1.5 font-normal">
-                        {topic.description}
-                      </p>
-                    </div>
-
-                    <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between">
-                      <span className="text-[11px] font-mono text-slate-400">
-                        5 Adaptive Questions • ~5 min
-                      </span>
-                      <button
-                        onClick={() => handleStartPrebuiltQuiz(topic)}
-                        className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 hover:from-amber-300 hover:to-amber-400 transition-colors shadow-md shadow-amber-500/20"
-                      >
-                        <span>Start Quiz</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                    <span>Start Practice Quiz</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('sandbox')}
+                    className="px-4 py-2.5 rounded-xl bg-slate-900 text-white border border-red-500/30 text-xs font-bold"
+                  >
+                    Code Sandbox
+                  </button>
+                </div>
               </div>
-
             </div>
           )}
 
-          {/* VIEW 2: CUSTOM AI PROMPT GENERATOR */}
-          {activeTab === 'custom_ai' && (
-            <div className="space-y-6 animate-fadeIn max-w-2xl mx-auto py-4">
-              <div className="text-center space-y-2">
-                <div className="inline-flex p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/30 mb-2">
-                  <Zap className="w-8 h-8" />
-                </div>
-                <h4 className="text-2xl font-black text-white">
-                  Dynamic AI Prompt Quiz Generator
-                </h4>
-                <p className="text-xs text-slate-400 max-w-md mx-auto">
-                  Type any Computer Science, Software Engineering, or AI topic. The AI generator will instantly construct a tailored timed assessment module!
-                </p>
+          {/* QUIZ HUB */}
+          {activeTab === 'quiz_hub' && (
+            <div className="space-y-6 animate-fadeIn">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {quizCategories.map((cat) => (
+                  <div
+                    key={cat.id}
+                    className="p-5 rounded-2xl bg-[#0c0f1a] border border-slate-800 hover:border-red-500/50 transition-all flex flex-col justify-between space-y-4 group"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-extrabold bg-red-500/20 text-rose-300">
+                          {cat.badge}
+                        </span>
+                      </div>
+                      <h4 className="text-lg font-black text-white group-hover:text-red-400 transition-colors">
+                        {cat.title}
+                      </h4>
+                      <p className="text-xs text-slate-400 mt-1">{cat.description}</p>
+                    </div>
+
+                    <button
+                      onClick={() => handleStartPrebuiltQuiz(cat)}
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-md shadow-red-600/20"
+                    >
+                      <span>Start Quiz</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
               </div>
+            </div>
+          )}
 
-              <form onSubmit={handleGenerateCustomAIQuiz} className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider">
-                    Enter Custom Quiz Topic or Technology Prompt:
-                  </label>
-                  <input
-                    type="text"
-                    value={customPrompt}
-                    onChange={(e) => setCustomPrompt(e.target.value)}
-                    placeholder="e.g., Docker & Kubernetes Architecture, Rust Ownership, GraphQL vs REST, Neural RAG..."
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-amber-500/40 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-400 shadow-inner font-mono"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
-                      Target Difficulty:
-                    </label>
-                    <select
-                      value={difficulty}
-                      onChange={(e) => setDifficulty(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-mono focus:outline-none focus:border-amber-400"
-                    >
-                      <option value="Beginner">Beginner Level</option>
-                      <option value="Intermediate">Intermediate Practitioner</option>
-                      <option value="Advanced">Advanced Architect</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
-                      Question Timer:
-                    </label>
-                    <select
-                      value={timerMode}
-                      onChange={(e) => setTimerMode(Number(e.target.value))}
-                      className="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-mono focus:outline-none focus:border-amber-400"
-                    >
-                      <option value={45}>45 Seconds per Question</option>
-                      <option value={60}>60 Seconds per Question</option>
-                      <option value={0}>Untimed (Zen Mode)</option>
-                    </select>
-                  </div>
-                </div>
-
+          {/* CUSTOM AI GENERATOR */}
+          {activeTab === 'custom_ai' && (
+            <div className="space-y-4 animate-fadeIn max-w-xl mx-auto py-4">
+              <h4 className="text-xl font-black text-white text-center">AI Prompt Quiz Generator</h4>
+              <form onSubmit={handleGenerateCustomAIQuiz} className="space-y-4 p-6 rounded-2xl bg-[#0c0f1a] border border-red-500/30">
+                <input
+                  type="text"
+                  value={customPrompt}
+                  onChange={(e) => setCustomPrompt(e.target.value)}
+                  placeholder="e.g. Docker, Rust, System Architecture..."
+                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-red-500/40 text-white text-xs font-mono"
+                  required
+                />
                 <button
                   type="submit"
-                  disabled={isGeneratingAI || !customPrompt.trim()}
-                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 text-slate-950 font-black text-sm flex items-center justify-center gap-2 hover:from-amber-300 hover:to-amber-400 transition-all disabled:opacity-50 shadow-lg shadow-amber-500/25"
+                  disabled={isGeneratingAI}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white font-black text-xs"
                 >
-                  {isGeneratingAI ? (
-                    <>
-                      <Bot className="w-5 h-5 animate-spin" />
-                      <span>{generationStep}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-5 h-5" />
-                      <span>Generate AI Quiz & Launch</span>
-                    </>
-                  )}
+                  {isGeneratingAI ? generationStep : 'Generate Quiz & Launch'}
                 </button>
               </form>
             </div>
           )}
 
-          {/* VIEW 3: ACTIVE TIMED QUIZ SESSION */}
+          {/* ACTIVE QUIZ */}
           {activeTab === 'quiz' && currentQ && (
             <div className="space-y-6 animate-fadeIn">
-              
-              {/* Quiz Status & Navigation Header */}
-              <div className="p-4 rounded-2xl bg-slate-950 border border-amber-500/30 flex flex-wrap items-center justify-between gap-3">
+              <div className="p-4 rounded-2xl bg-[#0c0f1a] border border-red-500/30 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-wider">
-                    {selectedTopic.title} • Question {currentQuestionIdx + 1} of {questions.length}
+                  <span className="text-[10px] font-mono font-bold text-red-400 uppercase">
+                    {selectedCategory.title} • Q{currentQuestionIdx + 1}/{questions.length}
                   </span>
-                  <h4 className="text-sm font-bold text-slate-200">
-                    Topic: <span className="text-white font-mono">{currentQ.subTopic || selectedTopic.title}</span>
-                  </h4>
+                  <h4 className="text-xs font-bold text-white">{currentQ.question}</h4>
                 </div>
-
-                <div className="flex items-center gap-3">
-                  {/* Timer Ring/Badge */}
-                  {timerMode > 0 && (
-                    <div className={`px-3 py-1.5 rounded-xl font-mono text-xs font-black flex items-center gap-1.5 border transition-all ${
-                      timeLeft <= 10
-                        ? 'bg-rose-500/20 text-rose-400 border-rose-500/40 animate-pulse'
-                        : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                    }`}>
-                      <Clock className="w-4 h-4" />
-                      <span>{timeLeft}s</span>
-                    </div>
-                  )}
-
-                  {/* Flag Question Button */}
-                  <button
-                    onClick={handleToggleFlag}
-                    className={`p-2 rounded-xl text-xs font-bold transition-all border flex items-center gap-1 ${
-                      flaggedQuestions[currentQuestionIdx]
-                        ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md'
-                        : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
-                    }`}
-                    title="Flag question for review"
-                  >
-                    <Flag className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Progress Indicator Pills */}
-              <div className="flex items-center gap-2">
-                {questions.map((_, idx) => {
-                  const isAnswered = userAnswers[idx] !== undefined;
-                  const isCurrent = idx === currentQuestionIdx;
-                  const isFlagged = flaggedQuestions[idx];
-
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => setCurrentQuestionIdx(idx)}
-                      className={`flex-1 h-2 rounded-full transition-all ${
-                        isCurrent
-                          ? 'bg-amber-400 ring-2 ring-amber-400/50 scale-105'
-                          : isFlagged
-                          ? 'bg-yellow-500'
-                          : isAnswered
-                          ? 'bg-emerald-500'
-                          : 'bg-slate-800'
-                      }`}
-                    />
-                  );
-                })}
-              </div>
-
-              {/* Question & Code Snippet Box */}
-              <div className="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4 shadow-inner">
-                <h3 className="text-base sm:text-lg font-bold text-white leading-snug">
-                  {currentQ.question}
-                </h3>
-
-                {currentQ.codeSnippet && (
-                  <div className="rounded-xl bg-slate-950 border border-slate-800 p-4 font-mono text-xs text-amber-200 overflow-x-auto relative">
-                    <div className="text-[10px] text-slate-500 mb-2 font-mono flex items-center gap-1 border-b border-slate-800 pb-1">
-                      <Terminal className="w-3 h-3 text-amber-400" />
-                      <span>Code Viewport</span>
-                    </div>
-                    <pre className="leading-relaxed"><code>{currentQ.codeSnippet}</code></pre>
+                {timerMode > 0 && (
+                  <div className="px-3 py-1 rounded-xl bg-red-500/20 text-rose-400 font-mono text-xs font-bold border border-red-500/30">
+                    {timeLeft}s
                   </div>
                 )}
               </div>
 
-              {/* Option Choice Cards */}
-              <div className="grid grid-cols-1 gap-3">
+              {currentQ.codeSnippet && (
+                <div className="p-4 rounded-2xl bg-[#080a11] border border-slate-800 font-mono text-xs text-rose-300 overflow-x-auto">
+                  <pre><code>{currentQ.codeSnippet}</code></pre>
+                </div>
+              )}
+
+              <div className="space-y-2">
                 {currentQ.options.map((opt, optIdx) => {
                   const isSelected = userAnswers[currentQuestionIdx] === optIdx;
-
                   return (
                     <button
                       key={optIdx}
                       onClick={() => handleOptionSelect(optIdx)}
-                      className={`w-full p-4 rounded-2xl text-left text-xs sm:text-sm font-medium transition-all border flex items-center justify-between group ${
+                      className={`w-full p-3.5 rounded-xl text-left text-xs font-medium border flex items-center justify-between ${
                         isSelected
-                          ? 'bg-amber-500/20 text-white border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
-                          : 'bg-slate-950/70 text-slate-300 border-slate-800 hover:border-amber-500/40 hover:bg-slate-900'
+                          ? 'bg-red-500/20 text-white border-red-500 shadow-[0_0_15px_rgba(220,38,38,0.2)]'
+                          : 'bg-[#0c0f1a] text-slate-300 border-slate-800'
                       }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <span className={`w-7 h-7 rounded-xl text-xs font-mono font-bold flex items-center justify-center transition-colors ${
-                          isSelected
-                            ? 'bg-amber-500 text-slate-950 font-black'
-                            : 'bg-slate-900 text-slate-400 group-hover:text-amber-300'
-                        }`}>
-                          {String.fromCharCode(65 + optIdx)}
-                        </span>
-                        <span>{opt}</span>
-                      </div>
-
-                      <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
-                        isSelected
-                          ? 'border-amber-400 bg-amber-400 text-slate-950'
-                          : 'border-slate-700'
-                      }`}>
-                        {isSelected && <CheckCircle2 className="w-3.5 h-3.5 fill-slate-950 text-amber-400" />}
-                      </div>
+                      <span>{String.fromCharCode(65 + optIdx)}. {opt}</span>
+                      {isSelected && <CheckCircle2 className="w-4 h-4 text-red-500" />}
                     </button>
                   );
                 })}
               </div>
 
-              {/* Action Buttons Footer */}
-              <div className="pt-2 flex items-center justify-between">
+              <div className="pt-2 flex justify-between">
                 <button
                   onClick={() => setCurrentQuestionIdx((prev) => Math.max(0, prev - 1))}
                   disabled={currentQuestionIdx === 0}
-                  className="px-4 py-2 rounded-xl bg-slate-900 text-slate-400 hover:text-white border border-slate-800 disabled:opacity-40 text-xs font-bold"
+                  className="px-4 py-2 rounded-xl bg-slate-900 text-slate-400 text-xs font-bold disabled:opacity-40"
                 >
                   Previous
                 </button>
-
-                <button
-                  onClick={handleNextOrSubmit}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 hover:from-amber-300 hover:to-amber-400 transition-all shadow-md shadow-amber-500/20"
-                >
-                  <span>{currentQuestionIdx === questions.length - 1 ? 'Submit & Review' : 'Next Question'}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleOpenAITutor()}
+                    className="px-4 py-2 rounded-xl bg-slate-900 text-rose-400 border border-red-500/30 text-xs font-bold flex items-center gap-1"
+                  >
+                    <Bot className="w-4 h-4 text-red-500" />
+                    <span>AI Tutor</span>
+                  </button>
+                  <button
+                    onClick={handleNextOrSubmit}
+                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white text-xs font-black flex items-center gap-1.5"
+                  >
+                    <span>{currentQuestionIdx === questions.length - 1 ? 'Submit' : 'Next'}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
-
             </div>
           )}
 
-          {/* VIEW 4: ANALYTICAL SCORECARD & AUTOMATED AI PERFORMANCE REVIEW */}
+          {/* SCORECARD */}
           {activeTab === 'scorecard' && scoreResult && (
-            <div className="space-y-6 animate-fadeIn">
-              
-              {/* Scorecard Hero Gauge Card */}
-              <div className="p-6 rounded-3xl bg-slate-950 border border-amber-500/40 text-center space-y-4 relative overflow-hidden shadow-2xl">
-                <div className="inline-flex p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/30 mb-1">
-                  <Award className="w-8 h-8" />
-                </div>
-
-                <div>
-                  <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                    {scoreResult.tier}
-                  </span>
-                  <h3 className="text-3xl font-black text-white mt-3">
-                    Assessment Score: {scoreResult.percentage}%
-                  </h3>
-                  <p className="text-xs text-slate-400 font-mono mt-1">
-                    {scoreResult.score} of {scoreResult.totalQuestions} Questions Correct • Completed in {scoreResult.timeSpentSeconds} seconds
-                  </p>
-                </div>
-
-                {/* Accuracy Bar */}
-                <div className="max-w-md mx-auto h-3 rounded-full bg-slate-900 border border-slate-800 overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-300 transition-all duration-1000 shadow-[0_0_15px_#f59e0b]"
-                    style={{ width: `${scoreResult.percentage}%` }}
-                  />
+            <div className="space-y-6 animate-fadeIn text-center">
+              <div className="p-6 rounded-3xl bg-[#0c0f1a] border border-red-500/40 space-y-3">
+                <Award className="w-10 h-10 text-red-500 mx-auto" />
+                <h3 className="text-3xl font-black text-white">Score: {scoreResult.percentage}%</h3>
+                <p className="text-xs text-slate-300">{scoreResult.aiEvaluation}</p>
+                <div className="pt-2 flex justify-center gap-3">
+                  <button
+                    onClick={() => setIsCertificateOpen(true)}
+                    className="px-4 py-2 rounded-xl bg-red-500/20 text-rose-300 border border-red-500/40 text-xs font-bold"
+                  >
+                    View Certificate
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('quiz_hub')}
+                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white text-xs font-black"
+                  >
+                    Retake Quiz
+                  </button>
                 </div>
               </div>
-
-              {/* Automated AI Review Summary Box */}
-              <div className="p-5 rounded-2xl bg-slate-900/90 border border-amber-500/30 space-y-3">
-                <div className="flex items-center gap-2 text-amber-400 font-mono text-xs font-bold uppercase tracking-wider">
-                  <Bot className="w-4 h-4 text-amber-400" />
-                  <span>Automated AI Performance Review</span>
-                </div>
-                <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-normal">
-                  {scoreResult.aiEvaluation}
-                </p>
-              </div>
-
-              {/* Question-by-Question Detailed Review Accordion */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider">
-                  Question-by-Question Breakdown & Explanations:
-                </h4>
-
-                {questions.map((q, idx) => {
-                  const userAnsIdx = userAnswers[idx];
-                  const isCorrect = userAnsIdx === q.correctAnswerIndex;
-                  const isExpanded = expandedReviewIdx === idx;
-
-                  return (
-                    <div
-                      key={idx}
-                      className={`rounded-2xl border transition-all overflow-hidden ${
-                        isCorrect
-                          ? 'bg-slate-950/80 border-emerald-500/30'
-                          : 'bg-slate-950/80 border-rose-500/30'
-                      }`}
-                    >
-                      <button
-                        onClick={() => setExpandedReviewIdx(isExpanded ? null : idx)}
-                        className="w-full p-4 text-left flex items-center justify-between gap-3 hover:bg-slate-900/60 transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          {isCorrect ? (
-                            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                          ) : (
-                            <XCircle className="w-5 h-5 text-rose-400 shrink-0" />
-                          )}
-                          <div>
-                            <span className="text-[11px] font-mono text-slate-400">
-                              Question {idx + 1} • {q.subTopic || 'Core Concept'}
-                            </span>
-                            <h5 className="text-xs sm:text-sm font-bold text-white">
-                              {q.question}
-                            </h5>
-                          </div>
-                        </div>
-
-                        {isExpanded ? (
-                          <ChevronUp className="w-4 h-4 text-slate-400" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 text-slate-400" />
-                        )}
-                      </button>
-
-                      {isExpanded && (
-                        <div className="p-4 border-t border-slate-800 bg-slate-900/40 space-y-3 text-xs">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 font-mono">
-                            <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
-                              <span className="text-[10px] text-slate-500 block">Your Answer:</span>
-                              <span className={isCorrect ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
-                                {userAnsIdx !== undefined ? q.options[userAnsIdx] : 'Not Answered'}
-                              </span>
-                            </div>
-                            <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
-                              <span className="text-[10px] text-slate-500 block">Correct Answer:</span>
-                              <span className="text-amber-400 font-bold">
-                                {q.options[q.correctAnswerIndex]}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="p-3 rounded-xl bg-slate-950 border border-amber-500/20 font-sans text-slate-300 leading-relaxed">
-                            <span className="font-mono text-amber-400 font-bold block mb-1">Explanation & Mechanics:</span>
-                            {q.explanation}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Scorecard Action Controls */}
-              <div className="pt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800">
-                <button
-                  onClick={() => setActiveTab('selector')}
-                  className="px-4 py-2.5 rounded-xl bg-slate-900 text-slate-300 hover:text-white border border-slate-800 text-xs font-bold flex items-center gap-1.5"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  <span>Take Another Quiz</span>
-                </button>
-
-                <button
-                  onClick={handleExportJSON}
-                  className="px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 hover:bg-amber-400 transition-colors shadow-md"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Export Scorecard Report (JSON)</span>
-                </button>
-              </div>
-
             </div>
           )}
 
-          {/* VIEW 5: DATABASE HISTORY & ANALYTICS */}
+          {/* FLASHCARDS */}
+          {activeTab === 'flashcards' && (
+            <div className="space-y-4 animate-fadeIn max-w-xl mx-auto py-4">
+              <h4 className="text-xl font-black text-white text-center">Self-Learning AI Flashcards</h4>
+              {flashcardDeck.map((card, idx) => {
+                const isFlipped = flippedCardIdx === idx;
+                return (
+                  <div
+                    key={card.id}
+                    onClick={() => setFlippedCardIdx(isFlipped ? null : idx)}
+                    className="p-6 rounded-2xl bg-[#0c0f1a] border border-red-500/30 cursor-pointer min-h-[140px] flex flex-col justify-between text-center"
+                  >
+                    <span className="text-[10px] font-mono text-red-400">Topic: {card.topic}</span>
+                    <p className="text-sm font-bold text-white py-4">{isFlipped ? card.back : card.front}</p>
+                    <span className="text-[10px] font-mono text-slate-500">Click to Flip</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* SANDBOX */}
+          {activeTab === 'sandbox' && (
+            <div className="space-y-4 animate-fadeIn">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-mono font-bold text-red-400">JavaScript Code Sandbox</h4>
+                <button
+                  onClick={handleRunSandbox}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white text-xs font-black"
+                >
+                  Run Code
+                </button>
+              </div>
+              <textarea
+                value={sandboxCode}
+                onChange={(e) => setSandboxCode(e.target.value)}
+                rows={10}
+                className="w-full p-4 bg-[#080a11] text-rose-300 font-mono text-xs rounded-2xl border border-red-500/30 focus:outline-none"
+              />
+              <div className="p-4 rounded-2xl bg-[#080a11] border border-slate-800 font-mono text-xs text-emerald-400">
+                {sandboxLogs.map((l, i) => <div key={i}>&gt; {l}</div>)}
+              </div>
+            </div>
+          )}
+
+          {/* HISTORY */}
           {activeTab === 'history' && (
             <div className="space-y-4 animate-fadeIn">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-mono font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
-                  <Database className="w-4 h-4" />
-                  <span>Saved Quiz History (SQLite Backend DB)</span>
-                </h4>
-                <button
-                  onClick={fetchHistory}
-                  className="text-xs text-amber-400 hover:underline font-mono"
-                >
-                  Refresh Log
-                </button>
+              <h4 className="text-sm font-mono font-bold text-red-400">Saved Quiz History (SQLite DB)</h4>
+              <div className="rounded-2xl border border-slate-800 bg-[#0c0f1a] overflow-x-auto">
+                <table className="w-full text-left text-xs font-mono">
+                  <thead className="bg-slate-900 text-red-400">
+                    <tr>
+                      <th className="p-3">Date</th>
+                      <th className="p-3">Topic</th>
+                      <th className="p-3">Score</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800 text-slate-300">
+                    {quizHistory.map((h, i) => (
+                      <tr key={i}>
+                        <td className="p-3 text-slate-400">{new Date(h.created_at || Date.now()).toLocaleDateString()}</td>
+                        <td className="p-3 font-bold text-white">{h.topic_name}</td>
+                        <td className="p-3 text-red-400 font-bold">{h.percentage}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-
-              {isLoadingHistory ? (
-                <div className="p-8 text-center text-slate-400 text-xs font-mono">
-                  Loading saved quiz records from database...
-                </div>
-              ) : quizHistory.length === 0 ? (
-                <div className="p-8 rounded-2xl bg-slate-950 border border-slate-800 text-center space-y-2">
-                  <FileText className="w-8 h-8 text-slate-600 mx-auto" />
-                  <p className="text-xs text-slate-400">
-                    No saved quiz attempts in database yet. Complete your first quiz to record metrics!
-                  </p>
-                </div>
-              ) : (
-                <div className="rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs font-mono">
-                      <thead className="bg-slate-900 text-amber-400 border-b border-slate-800">
-                        <tr>
-                          <th className="p-3">Date</th>
-                          <th className="p-3">Topic</th>
-                          <th className="p-3">Difficulty</th>
-                          <th className="p-3">Score</th>
-                          <th className="p-3">Time</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800 text-slate-300">
-                        {quizHistory.map((item, idx) => (
-                          <tr key={idx} className="hover:bg-slate-900/50">
-                            <td className="p-3 text-slate-400">
-                              {new Date(item.created_at || Date.now()).toLocaleDateString()}
-                            </td>
-                            <td className="p-3 font-bold text-white">{item.topic_name}</td>
-                            <td className="p-3">{item.difficulty}</td>
-                            <td className="p-3">
-                              <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">
-                                {item.percentage}% ({item.score}/{item.total_questions})
-                              </span>
-                            </td>
-                            <td className="p-3">{item.time_spent_seconds}s</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
         </div>
 
       </div>
+
+      {/* AI Tutor Drawer */}
+      {isAITutorOpen && aiTutorBreakdown && (
+        <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md h-full bg-[#0c0f1a] border-l border-red-500/40 p-6 flex flex-col justify-between overflow-y-auto space-y-4 shadow-2xl text-slate-100">
+            <div className="flex items-center justify-between border-b border-red-500/30 pb-3">
+              <span className="text-xs font-mono font-bold text-red-500">AI Tutor Step-by-Step Explanation</span>
+              <button onClick={() => setIsAITutorOpen(false)} className="text-slate-400 hover:text-white">✕</button>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="text-sm font-bold text-white">{aiTutorBreakdown.breakdown.headline}</h4>
+              {aiTutorBreakdown.breakdown.steps.map((s) => (
+                <div key={s.step} className="p-3 rounded-xl bg-[#080a11] border border-red-500/20 text-xs">
+                  <span className="font-mono text-red-400 font-bold block mb-1">Step {s.step}: {s.title}</span>
+                  <p className="text-slate-300 leading-relaxed">{s.detail}</p>
+                </div>
+              ))}
+            </div>
+
+            <button onClick={() => setIsAITutorOpen(false)} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 font-black text-xs text-white">
+              Got It, Thanks!
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Official Certificate Modal */}
+      {isCertificateOpen && scoreResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fadeIn">
+          <div className="relative w-full max-w-xl bg-[#0c0f1a] rounded-3xl border-2 border-red-500/60 p-6 shadow-2xl text-center space-y-4">
+            <h3 className="text-2xl font-black text-white">Official Certificate of Completion</h3>
+            <p className="text-xs text-slate-300">Certifies that <span className="text-red-400 font-bold">Janardhan Devarala</span> has mastered <span className="font-bold text-white">{scoreResult.topicName}</span> with {scoreResult.percentage}% score.</p>
+            <div className="pt-2 flex justify-center gap-2">
+              <button onClick={() => window.print()} className="px-5 py-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white text-xs font-black">
+                Print / Download Certificate
+              </button>
+              <button onClick={() => setIsCertificateOpen(false)} className="px-4 py-2 rounded-xl bg-slate-900 text-slate-400 text-xs font-bold">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -1,54 +1,126 @@
-// Smart AI Quiz & Assessment Hub - Question Bank & AI Template Engine
+// Smart AI Quiz & Assessment Hub - Question Bank & Self-Learning Engine
 
-export const quizTopics = [
+export const quizCategories = [
+  {
+    id: "python",
+    title: "Python & Core Backend",
+    icon: "Terminal",
+    description: "Decorators, Generators, Asyncio, Memory Management, and OOP Design.",
+    badge: "Core Language",
+    color: "from-red-600 to-rose-600",
+    questionTypes: ["MCQ", "Debugging", "Scenario"]
+  },
   {
     id: "dsa",
     title: "Data Structures & Algorithms",
     icon: "BrainCircuit",
-    description: "Arrays, Binary Trees, Graph Traversal, Big-O Analysis, and Dynamic Programming.",
-    badge: "Core CS",
-    color: "from-amber-500 to-yellow-500",
-    questionsCount: 5,
-    estimatedMinutes: 5
+    description: "Arrays, Binary Trees, Graphs, Big-O Analysis, Dynamic Programming.",
+    badge: "CS Core",
+    color: "from-red-700 to-rose-700",
+    questionTypes: ["MCQ", "Code Completion", "Debugging"]
   },
   {
-    id: "fullstack",
-    title: "Full-Stack & React 19",
+    id: "algorithms",
+    title: "Algorithmic Problem Solving",
+    icon: "Cpu",
+    description: "Sliding Window, Two Pointers, Graph BFS/DFS, Greedy & DP Optimization.",
+    badge: "Problem Solving",
+    color: "from-rose-600 to-red-600",
+    questionTypes: ["MCQ", "Debugging"]
+  },
+  {
+    id: "webdev",
+    title: "Web Engineering & React 19",
     icon: "Code2",
-    description: "React Components, Custom Hooks, State Management, Node.js & Express REST APIs.",
-    badge: "Web Eng",
-    color: "from-amber-400 to-amber-600",
-    questionsCount: 5,
-    estimatedMinutes: 5
+    description: "React Server Components, Custom Hooks, Node.js REST APIs, CORS, SQL.",
+    badge: "Full-Stack",
+    color: "from-red-600 to-rose-500",
+    questionTypes: ["MCQ", "Code Debugging"]
   },
   {
     id: "ai_llm",
     title: "Artificial Intelligence & LLMs",
     icon: "Sparkles",
-    description: "Neural Networks, Transformer Architecture, RAG Pipeline, Python ML, Prompting.",
+    description: "Transformers, RAG Pipelines, Vector DBs, Prompt Design, Fine-Tuning.",
     badge: "AI Trending",
-    color: "from-yellow-400 to-amber-500",
-    questionsCount: 5,
-    estimatedMinutes: 5
-  },
-  {
-    id: "database",
-    title: "Database & System Architecture",
-    icon: "Database",
-    description: "SQL vs NoSQL, Indexing, B-Trees, Caching Strategies, REST vs GraphQL, Microservices.",
-    badge: "Backend",
-    color: "from-amber-600 to-amber-800",
-    questionsCount: 5,
-    estimatedMinutes: 5
+    color: "from-rose-700 to-red-600",
+    questionTypes: ["MCQ", "Scenario"]
   }
 ];
 
 export const prebuiltQuestions = {
+  python: [
+    {
+      id: "py_1",
+      topic: "Python & Core Backend",
+      subTopic: "Decorators & Functions",
+      type: "debugging",
+      difficulty: "Intermediate",
+      question: "Identify the bug in this Python decorator that causes wrapper functions to lose their original function name and docstrings.",
+      codeSnippet: `def my_logger(func):
+  def wrapper(*args, **kwargs):
+    print(f"Calling {func.__name__}")
+    return func(*args, **kwargs)
+  return wrapper
+
+@my_logger
+def calculate_tax(amount):
+  """Calculates 10% tax."""
+  return amount * 0.10
+
+# Bug: calculate_tax.__name__ returns 'wrapper' instead of 'calculate_tax'`,
+      options: [
+        "Decorate the inner wrapper with @functools.wraps(func)",
+        "Change return func(*args) to return func(self)",
+        "Pass *kwargs before *args in parameter list",
+        "Replace def wrapper with lambda expression"
+      ],
+      correctAnswerIndex: 0,
+      explanation: "@functools.wraps(func) copies the original function's __name__, __doc__, and module metadata to the inner wrapper function."
+    },
+    {
+      id: "py_2",
+      topic: "Python & Core Backend",
+      subTopic: "Async / Asyncio",
+      type: "mcq",
+      difficulty: "Advanced",
+      question: "In Python asyncio, what is the consequence of executing a blocking time.sleep(5) inside an async coroutine?",
+      codeSnippet: `async def fetch_user_data():
+  time.sleep(5) # ❌ Blocking call!
+  return {"user_id": 101}`,
+      options: [
+        "Asyncio spawns a background thread automatically",
+        "It blocks the entire event loop, freezing all concurrent coroutines for 5 seconds",
+        "It throws a CoroutineRuntimeError immediately",
+        "It executes non-blocking sleep in background"
+      ],
+      correctAnswerIndex: 1,
+      explanation: "time.sleep() is synchronous and blocks the single main event loop thread. To sleep asynchronously without blocking, use await asyncio.sleep(5)."
+    },
+    {
+      id: "py_3",
+      topic: "Python & Core Backend",
+      subTopic: "Memory & GIL",
+      type: "scenario",
+      difficulty: "Advanced",
+      question: "Which Python approach bypasses the Global Interpreter Lock (GIL) for CPU-bound heavy mathematical computations?",
+      options: [
+        "Using asyncio task groups",
+        "Using the multiprocessing module or C-extensions (NumPy / Cython)",
+        "Using global variables across threads",
+        "Increasing thread stack size"
+      ],
+      correctAnswerIndex: 1,
+      explanation: "Multiprocessing creates separate OS processes with distinct Python interpreters and memory spaces, bypassing GIL restrictions across multi-core CPUs."
+    }
+  ],
+
   dsa: [
     {
       id: "dsa_1",
       topic: "Data Structures & Algorithms",
       subTopic: "Time Complexity",
+      type: "mcq",
       difficulty: "Intermediate",
       question: "What is the worst-case time complexity of quicksort when using an unoptimized pivot selection strategy?",
       codeSnippet: `function quicksort(arr) {
@@ -65,105 +137,82 @@ export const prebuiltQuestions = {
         "O(log n)"
       ],
       correctAnswerIndex: 1,
-      explanation: "When the input array is already sorted and the first element is selected as the pivot, quicksort splits the array into sizes 0 and n-1 at each step, resulting in O(n²) recursion depth and total operations."
+      explanation: "When the input array is already sorted and the first element is selected as the pivot, quicksort splits the array into sizes 0 and n-1 at each step, resulting in O(n²) recursion depth."
     },
     {
       id: "dsa_2",
       topic: "Data Structures & Algorithms",
-      subTopic: "Binary Search Trees",
+      subTopic: "Binary Trees",
+      type: "debugging",
       difficulty: "Beginner",
-      question: "Which tree traversal order yields node values in strictly ascending order for a Binary Search Tree (BST)?",
-      codeSnippet: `// Traversal order check
-function traverse(node) {
-  if (!node) return;
-  traverse(node.left);
-  console.log(node.val);
-  traverse(node.right);
+      question: "Fix the bug in this Binary Search Tree (BST) search function that causes infinite recursion when searching for missing keys.",
+      codeSnippet: `function searchBST(root, val) {
+  if (!root) return null;
+  if (root.val === val) return root;
+  if (val < root.val) return searchBST(root.left, val);
+  // Bug: Missing return statement for right child search!
+  searchBST(root.right, val);
 }`,
       options: [
-        "Pre-order Traversal",
-        "Post-order Traversal",
-        "In-order Traversal",
-        "Level-order Traversal"
+        "Add return statement: return searchBST(root.right, val);",
+        "Change val < root.val to val > root.val",
+        "Initialize root to empty object",
+        "Replace recursive search with linear array map"
       ],
-      correctAnswerIndex: 2,
-      explanation: "In-order traversal visits left subtree, current node, and right subtree. In a BST, all left descendants are smaller and right descendants are larger, producing a sorted sequence."
+      correctAnswerIndex: 0,
+      explanation: "Without the return keyword on the right child search call, the call returns undefined back up the call stack instead of returning the found node."
     },
     {
       id: "dsa_3",
       topic: "Data Structures & Algorithms",
-      subTopic: "Graph Algorithms",
-      difficulty: "Advanced",
-      question: "Which algorithm is guaranteed to find the shortest path in a weighted graph with non-negative edge weights?",
-      options: [
-        "Breadth-First Search (BFS)",
-        "Dijkstra's Algorithm",
-        "Depth-First Search (DFS)",
-        "Kruskal's Algorithm"
-      ],
-      correctAnswerIndex: 1,
-      explanation: "Dijkstra's algorithm uses a priority queue to greedily explore the path with minimum distance in non-negatively weighted graphs, guaranteeing the shortest path."
-    },
-    {
-      id: "dsa_4",
-      topic: "Data Structures & Algorithms",
-      subTopic: "Hash Tables",
-      difficulty: "Intermediate",
-      question: "What is the average time complexity for insertion, deletion, and lookup in a hash table with a good hash function?",
-      options: [
-        "O(1)",
-        "O(log n)",
-        "O(n)",
-        "O(n log n)"
-      ],
-      correctAnswerIndex: 0,
-      explanation: "With a uniform hash function and low load factor, collisions are rare, providing O(1) constant average time for hash table operations."
-    },
-    {
-      id: "dsa_5",
-      topic: "Data Structures & Algorithms",
       subTopic: "Dynamic Programming",
+      type: "scenario",
       difficulty: "Advanced",
-      question: "In Dynamic Programming, what are the two core properties a problem must satisfy to be solved efficiently using DP?",
+      question: "In Dynamic Programming, what are the two essential properties a problem MUST satisfy to be solved using DP?",
       options: [
-        "Greedy Choice Property & Divide and Conquer",
+        "Divide and Conquer & Sorting Constraint",
         "Optimal Substructure & Overlapping Subproblems",
-        "Binary Search Property & Sorting Constraint",
-        "Depth Reduction & Tail Recursion"
+        "Greedy Choice Property & Tail Recursion",
+        "Binary Search Property & Monotonicity"
       ],
       correctAnswerIndex: 1,
-      explanation: "Dynamic Programming applies when an optimal solution can be constructed from optimal solutions to subproblems (Optimal Substructure) and the same subproblems are solved repeatedly (Overlapping Subproblems)."
+      explanation: "DP applies when an optimal solution can be constructed from optimal solutions to subproblems (Optimal Substructure) and the same subproblems are solved repeatedly (Overlapping Subproblems)."
     }
   ],
 
-  fullstack: [
+  webdev: [
     {
-      id: "fs_1",
-      topic: "Full-Stack & React 19",
-      subTopic: "React Hooks",
+      id: "web_1",
+      topic: "Web Engineering & React 19",
+      subTopic: "React State Mutation",
+      type: "debugging",
       difficulty: "Intermediate",
-      question: "In React 18/19, what happens if you mutate state directly instead of calling the setState function?",
-      codeSnippet: `const [user, setUser] = useState({ name: "Alex" });
-// ❌ Direct mutation
-user.name = "Janardhan";`,
+      question: "Why does this React component fail to update the UI when the user clicks 'Update Name'?",
+      codeSnippet: `const [profile, setProfile] = useState({ name: "Alex", score: 90 });
+
+const handleUpdate = () => {
+  profile.name = "Janardhan"; // ❌ Direct mutation
+  setProfile(profile); // Reference hasn't changed!
+};`,
       options: [
-        "React triggers a warning in the console but updates UI immediately",
-        "React fails to detect the reference change and will NOT trigger a component re-render",
-        "React automatically converts it into a reactive Proxy",
-        "It throws a Uncaught TypeError at runtime"
+        "React uses shallow reference comparison Object.is(); mutating state in-place keeps the same reference so re-render is skipped",
+        "React state cannot store JavaScript objects",
+        "setProfile must be wrapped in a setTimeout block",
+        "The component needs a key prop on handleUpdate"
       ],
-      correctAnswerIndex: 1,
-      explanation: "React relies on shallow object reference equality (Object.is) to schedule re-renders. Mutating the object in-place keeps the same memory reference, so React skips rendering."
+      correctAnswerIndex: 0,
+      explanation: "To trigger a re-render, pass a new object copy: setProfile({ ...profile, name: 'Janardhan' })."
     },
     {
-      id: "fs_2",
-      topic: "Full-Stack & React 19",
+      id: "web_2",
+      topic: "Web Engineering & React 19",
       subTopic: "Express Middleware",
+      type: "mcq",
       difficulty: "Beginner",
-      question: "In an Express.js backend, what MUST be invoked at the end of a custom middleware function to pass control to the next middleware?",
+      question: "What function must be called inside custom Express middleware to pass control to the next handler?",
       codeSnippet: `app.use((req, res, next) => {
   console.log('Incoming Request:', req.url);
-  // What should be called here?
+  // What should be invoked here?
 });`,
       options: [
         "res.continue()",
@@ -172,55 +221,7 @@ user.name = "Janardhan";`,
         "express.next()"
       ],
       correctAnswerIndex: 1,
-      explanation: "The next() function signals Express to proceed to the next handler in the execution chain. Omitting next() leaves the request hanging without sending a response."
-    },
-    {
-      id: "fs_3",
-      topic: "Full-Stack & React 19",
-      subTopic: "Async / Promises",
-      difficulty: "Intermediate",
-      question: "What is the result of using Promise.all() when one of the passed promises rejects?",
-      options: [
-        "Promise.all resolves with the remaining successful promises",
-        "Promise.all immediately rejects with the error of the first rejected promise",
-        "Promise.all retries the failed promise three times",
-        "Promise.all returns null for the failed index"
-      ],
-      correctAnswerIndex: 1,
-      explanation: "Promise.all has an 'all-or-nothing' behavior. If any promise in the array rejects, the entire returned promise immediately rejects with that reason."
-    },
-    {
-      id: "fs_4",
-      topic: "Full-Stack & React 19",
-      subTopic: "React Performance",
-      difficulty: "Advanced",
-      question: "What is the primary use case of React's useMemo hook?",
-      codeSnippet: `const memoizedValue = useMemo(() => {
-  return computeExpensiveValue(a, b);
-}, [a, b]);`,
-      options: [
-        "To persist state values across browser page reloads",
-        "To memoize expensive calculation results between renders unless dependencies change",
-        "To prevent initial component mounting",
-        "To run asynchronous side-effects after layout paint"
-      ],
-      correctAnswerIndex: 1,
-      explanation: "useMemo caches the returned value of a calculation function across re-renders and recomputes it only when one of its listed dependencies changes."
-    },
-    {
-      id: "fs_5",
-      topic: "Full-Stack & React 19",
-      subTopic: "REST API Architecture",
-      difficulty: "Intermediate",
-      question: "Which HTTP method is idempotent and intended to replace an existing resource completely?",
-      options: [
-        "POST",
-        "PUT",
-        "PATCH",
-        "DELETE"
-      ],
-      correctAnswerIndex: 1,
-      explanation: "PUT is idempotent, meaning making multiple identical PUT requests yields the same server state as a single request. PUT completely replaces the target resource entity."
+      explanation: "The next() function signals Express to execute the next middleware or route handler in the chain."
     }
   ],
 
@@ -228,163 +229,108 @@ user.name = "Janardhan";`,
     {
       id: "ai_1",
       topic: "Artificial Intelligence & LLMs",
-      subTopic: "Transformer Architecture",
+      subTopic: "Transformer Attention",
+      type: "scenario",
       difficulty: "Advanced",
-      question: "What mechanism in modern Large Language Models (LLMs) allows the model to dynamically focus on relevant tokens across long text context?",
+      question: "What mechanism in Large Language Models allows the model to dynamically compute relative importance between tokens across long context windows?",
       options: [
         "Convolutional Stride Filtering",
-        "Self-Attention Mechanism",
-        "Recurrent Hidden Pooling",
+        "Self-Attention Mechanism (Query-Key-Value dot products)",
+        "Recurrent Pooling Layers",
         "Gradient Boosting Trees"
       ],
       correctAnswerIndex: 1,
-      explanation: "The Self-Attention mechanism computes Query-Key-Value dot products to weigh relative dependencies between every token in a sequence regardless of distance."
+      explanation: "Self-attention computes dot-product similarity between token Query and Key vectors to dynamically weigh token context relationships regardless of position distance."
     },
     {
       id: "ai_2",
       topic: "Artificial Intelligence & LLMs",
       subTopic: "RAG Architecture",
+      type: "mcq",
       difficulty: "Intermediate",
-      question: "In Retrieval-Augmented Generation (RAG), what is the role of Vector Databases (e.g. Chroma, Pinecone, FAISS)?",
+      question: "In Retrieval-Augmented Generation (RAG), what is the role of high-dimensional vector embeddings?",
       options: [
         "To compile Python ML code into WebAssembly binaries",
-        "To store high-dimensional embeddings and execute similarity searches for domain knowledge retrieval",
-        "To train deep neural networks from scratch using raw SQL tables",
-        "To encrypt LLM API keys on client devices"
+        "To map semantic text meaning into numerical vector space for fast k-NN similarity retrieval",
+        "To compress SQL database backups into ZIP archives",
+        "To encrypt API secret keys"
       ],
       correctAnswerIndex: 1,
-      explanation: "Vector databases index high-dimensional vector embeddings generated by embedding models, enabling fast k-nearest neighbor (k-NN) semantic search to retrieve grounding facts for LLM prompts."
-    },
-    {
-      id: "ai_3",
-      topic: "Artificial Intelligence & LLMs",
-      subTopic: "Python Machine Learning",
-      difficulty: "Beginner",
-      question: "Which Python library is standard for data manipulation and tabular DataFrame structures in ML pipelines?",
-      codeSnippet: `import pandas as pd
-df = pd.read_csv("dataset.csv")
-print(df.head())`,
-      options: [
-        "NumPy",
-        "Pandas",
-        "Matplotlib",
-        "Scikit-learn"
-      ],
-      correctAnswerIndex: 1,
-      explanation: "Pandas is built on top of NumPy and provides high-performance DataFrames for data cleaning, aggregation, filtering, and preparation in AI/ML workflows."
-    },
-    {
-      id: "ai_4",
-      topic: "Artificial Intelligence & LLMs",
-      subTopic: "Prompt Engineering",
-      difficulty: "Intermediate",
-      question: "What prompt engineering technique instructs an LLM to break down complex reasoning step-by-step before producing a final answer?",
-      options: [
-        "Few-Shot In-Context Prompting",
-        "Chain-of-Thought (CoT) Prompting",
-        "Zero-Shot System Directing",
-        "Hallucination Suppression Penalty"
-      ],
-      correctAnswerIndex: 1,
-      explanation: "Chain-of-Thought (CoT) prompting encourages the model to generate intermediate reasoning steps, significantly improving accuracy on multi-step math and logic problems."
-    },
-    {
-      id: "ai_5",
-      topic: "Artificial Intelligence & LLMs",
-      subTopic: "Neural Networks",
-      difficulty: "Advanced",
-      question: "What optimization problem occurs when gradients shrink exponentially as they propagate backward through deep neural network layers during training?",
-      options: [
-        "Exploding Gradient Problem",
-        "Vanishing Gradient Problem",
-        "Overfitting Trap",
-        "Dead Neuron Saturation"
-      ],
-      correctAnswerIndex: 1,
-      explanation: "The Vanishing Gradient Problem occurs when small derivative values multiply layer by layer during backpropagation, causing early layer weights to stop updating."
-    }
-  ],
-
-  database: [
-    {
-      id: "db_1",
-      topic: "Database & System Architecture",
-      subTopic: "SQL Indexing",
-      difficulty: "Intermediate",
-      question: "Why do B-Tree indexes speed up SELECT query lookup times in relational databases like SQLite and PostgreSQL?",
-      options: [
-        "They compress all data rows into a single binary blob",
-        "They maintain balanced search tree structures reducing search complexity from O(n) scan to O(log n)",
-        "They execute queries concurrently across GPU cores",
-        "They bypass database transaction logging entirely"
-      ],
-      correctAnswerIndex: 1,
-      explanation: "B-Tree indexes sort column keys in a balanced tree structure, allowing the storage engine to quickly traverse nodes in logarithmic time O(log n) rather than performing full table scans."
-    },
-    {
-      id: "db_2",
-      topic: "Database & System Architecture",
-      subTopic: "ACID Guarantees",
-      difficulty: "Intermediate",
-      question: "In database transaction management, what does the 'Atomicity' property guarantee?",
-      options: [
-        "Data is mirrored across atomic physical storage drives",
-        "All operations inside a transaction complete successfully, or the entire transaction is rolled back with 0 changes applied",
-        "Multiple transactions execute concurrently without interfering with each other",
-        "Committed data remains saved even during power outages"
-      ],
-      correctAnswerIndex: 1,
-      explanation: "Atomicity ensures an 'all-or-nothing' execution guarantee. If any statement inside a transaction block fails, all previous operations in that transaction are reversed."
-    },
-    {
-      id: "db_3",
-      topic: "Database & System Architecture",
-      subTopic: "Caching & Performance",
-      difficulty: "Intermediate",
-      question: "Which high-speed in-memory data store is commonly used as a cache layer to reduce load on primary SQL databases?",
-      options: [
-        "MongoDB",
-        "Redis",
-        "SQLite",
-        "Cassandra"
-      ],
-      correctAnswerIndex: 1,
-      explanation: "Redis is an in-memory key-value data store providing sub-millisecond data retrieval times, making it ideal for session caching, rate limiting, and fast lookup data."
-    },
-    {
-      id: "db_4",
-      topic: "Database & System Architecture",
-      subTopic: "System Design",
-      difficulty: "Advanced",
-      question: "What system architecture pattern decouples services by having producers send events to a message queue and consumers process them asynchronously?",
-      options: [
-        "Monolithic Architecture",
-        "Event-Driven Architecture (EDA)",
-        "Model-View-Controller (MVC)",
-        "Serverless Direct RPC"
-      ],
-      correctAnswerIndex: 1,
-      explanation: "Event-Driven Architecture uses event brokers (like Kafka or RabbitMQ) to allow decoupled, scalable microservices to publish and consume state events asynchronously."
-    },
-    {
-      id: "db_5",
-      topic: "Database & System Architecture",
-      subTopic: "NoSQL vs Relational",
-      difficulty: "Beginner",
-      question: "Which database type is designed primarily around JSON-like document collections without strict predefined schemas?",
-      options: [
-        "Relational SQL (PostgreSQL, MySQL)",
-        "Document NoSQL (MongoDB, CouchDB)",
-        "Graph Database (Neo4j)",
-        "Time-Series Database (InfluxDB)"
-      ],
-      correctAnswerIndex: 1,
-      explanation: "Document databases store flexible, hierarchical JSON/BSON records in collections without requiring rigid schema tables or multi-table migrations."
+      explanation: "Vector embeddings represent semantic text meaning as mathematical vectors, allowing vector databases to perform fast semantic similarity searches to ground LLM prompts."
     }
   ]
 };
 
-// Dynamic AI Quiz Prompt Generator function
+// AI Tutor Step-by-Step Explanation Generator
+export function getAITutorStepByStepExplanation(question, userAnswerIndex) {
+  const isCorrect = userAnswerIndex === question.correctAnswerIndex;
+  const userChoiceText = question.options[userAnswerIndex] || "No Answer Selected";
+  const correctChoiceText = question.options[question.correctAnswerIndex];
+
+  return {
+    isCorrect,
+    headline: isCorrect ? "🎉 Excellent Technical Reasoning!" : "💡 Step-by-Step AI Tutor Breakdown",
+    steps: [
+      {
+        step: 1,
+        title: "Core Mechanics",
+        detail: `This problem tests your understanding of ${question.subTopic || question.topic}.`
+      },
+      {
+        step: 2,
+        title: "Selected Option Evaluation",
+        detail: isCorrect
+          ? `You selected "${userChoiceText}", which accurately models system behavior.`
+          : `You selected "${userChoiceText}". While intuitive, this introduces subtle bugs or improper assumptions.`
+      },
+      {
+        step: 3,
+        title: "Correct Solution & Mechanic",
+        detail: `The correct choice is "${correctChoiceText}". ${question.explanation}`
+      },
+      {
+        step: 4,
+        title: "AI Rule of Thumb",
+        detail: `Always check for non-mutating updates, memory bounds, and explicit return handles when writing production ${question.subTopic || 'software'}.`
+      }
+    ]
+  };
+}
+
+// Generate Flashcards from Missed Questions for Self-Learning AI Engine
+export function generateFlashcardsFromMissedQuestions(missedQuestionList) {
+  if (!missedQuestionList || missedQuestionList.length === 0) {
+    return [
+      {
+        id: "fc_default_1",
+        topic: "React 19 State Mechanics",
+        front: "Why shouldn't you mutate state objects directly in React?",
+        back: "React checks state using Object.is() shallow reference equality. In-place mutation keeps the same object memory pointer, so React skips re-rendering.",
+        tag: "Frontend",
+        mastered: false
+      },
+      {
+        id: "fc_default_2",
+        topic: "Data Structures & Hash Tables",
+        front: "What is the average time complexity for Hash Table lookup?",
+        back: "O(1) constant time, provided a good hash distribution function prevents excessive key collisions.",
+        tag: "Core CS",
+        mastered: false
+      }
+    ];
+  }
+
+  return missedQuestionList.map((q, idx) => ({
+    id: `fc_${q.id}_${idx}`,
+    topic: q.subTopic || q.topic,
+    front: q.question,
+    back: `Answer: ${q.options[q.correctAnswerIndex]}\n\nMechanic: ${q.explanation}`,
+    tag: q.topic.split(' ')[0],
+    mastered: false
+  }));
+}
+
+// Dynamic AI Prompt Generator function
 export function generateAIQuizFromPrompt(userPrompt, difficulty = "Intermediate") {
   const cleanPrompt = userPrompt.trim();
   const topicName = cleanPrompt ? cleanPrompt.charAt(0).toUpperCase() + cleanPrompt.slice(1) : "Software Engineering & AI";
@@ -394,8 +340,9 @@ export function generateAIQuizFromPrompt(userPrompt, difficulty = "Intermediate"
       id: `ai_gen_1`,
       topic: topicName,
       subTopic: "Core Concepts",
+      type: "mcq",
       difficulty,
-      question: `In ${topicName}, what is the foundational principle underlying its core design and implementation pattern?`,
+      question: `In ${topicName}, what is the foundational principle underlying its core architectural pattern?`,
       codeSnippet: `// ${topicName} Architecture Pattern
 function initializeSystemConfig() {
   const mode = "OPTIMIZED_EXECUTION";
@@ -414,8 +361,9 @@ function initializeSystemConfig() {
       id: `ai_gen_2`,
       topic: topicName,
       subTopic: "Performance & Optimization",
+      type: "debugging",
       difficulty,
-      question: `When optimizing performance for ${topicName}, which strategy yields the greatest reduction in runtime bottleneck?`,
+      question: `When optimizing performance for ${topicName}, which strategy yields the greatest reduction in runtime latency?`,
       options: [
         "Increasing redundant network payloads",
         "Implementing effective caching, lazy evaluation, and algorithm optimization",
@@ -429,6 +377,7 @@ function initializeSystemConfig() {
       id: `ai_gen_3`,
       topic: topicName,
       subTopic: "Security & Reliability",
+      type: "scenario",
       difficulty,
       question: `Which industry best practice is critical when deploying ${topicName} in production environments?`,
       options: [
@@ -439,40 +388,6 @@ function initializeSystemConfig() {
       ],
       correctAnswerIndex: 1,
       explanation: "Validating user input and restricting credential exposure prevent security vulnerabilities like injection attacks and unauthorized access."
-    },
-    {
-      id: `ai_gen_4`,
-      topic: topicName,
-      subTopic: "Scalability & State",
-      difficulty,
-      question: `How does ${topicName} handle state synchronization across distributed worker nodes?`,
-      codeSnippet: `async function syncState(nodeId, statePayload) {
-  const ack = await eventBroker.publish(\`sync:\${nodeId}\`, statePayload);
-  return ack.status === "OK";
-}`,
-      options: [
-        "By enforcing stateless worker nodes and centralized event broker synchronization",
-        "By writing temporary state files directly to local client disk storage",
-        "By restarting all worker servers on every state update",
-        "By disabling concurrent user sessions"
-      ],
-      correctAnswerIndex: 0,
-      explanation: "Stateless worker nodes paired with distributed message queues allow systems to scale horizontally without state corruption."
-    },
-    {
-      id: `ai_gen_5`,
-      topic: topicName,
-      subTopic: "AI & Modern Integration",
-      difficulty,
-      question: `How can modern AI models and LLMs be integrated with ${topicName} for automated decision making?`,
-      options: [
-        "By embedding prompt-guided LLM API calls with structured JSON output schemas",
-        "By replacing all database tables with raw text files",
-        "By compiling Python scripts directly into CSS stylesheets",
-        "By converting API calls into static hardcoded arrays"
-      ],
-      correctAnswerIndex: 0,
-      explanation: "Structured output parsing and function calling allow AI models to return validated JSON data directly consumed by backend APIs."
     }
   ];
 }
