@@ -26,7 +26,12 @@ import {
   BookOpen,
   Play,
   ShieldCheck,
-  Upload
+  Upload,
+  User,
+  Volume2,
+  VolumeX,
+  Copy,
+  Check
 } from 'lucide-react';
 import {
   quizCategories,
@@ -35,16 +40,38 @@ import {
   getAITutorStepByStepExplanation,
   generateFlashcardsFromMissedQuestions
 } from '../../data/quizData';
+import {
+  playClickSound,
+  playSelectSound,
+  playSuccessSound,
+  playErrorSound,
+  playTimerAlertSound
+} from '../../utils/audioFX';
 
 export default function QuizHubModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   // View state: 'dashboard' | 'quiz_hub' | 'custom_ai' | 'quiz' | 'scorecard' | 'flashcards' | 'sandbox' | 'history'
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isAudioMuted, setIsAudioMuted] = useState(false);
+
+  // Dynamic User Profile State
+  const [userProfile, setUserProfile] = useState({
+    name: "Alex Rivera",
+    role: "Full-Stack Candidate",
+    targetGoal: "Master Computer Science & LLM Engineering",
+    streakDays: 7,
+    completedQuizzes: 8,
+    avgScore: 92
+  });
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [editNameInput, setEditNameInput] = useState(userProfile.name);
+  const [editRoleInput, setEditRoleInput] = useState(userProfile.role);
 
   // Quiz Configuration State
   const [selectedCategory, setSelectedCategory] = useState(quizCategories[0]);
   const [difficulty, setDifficulty] = useState('Intermediate');
+  const [assessmentMode, setAssessmentMode] = useState('exam');
   const [questionType, setQuestionType] = useState('All');
   const [timerMode, setTimerMode] = useState(60);
   const [customPrompt, setCustomPrompt] = useState('');
@@ -71,7 +98,6 @@ export default function QuizHubModal({ isOpen, onClose }) {
   const [isCertificateOpen, setIsCertificateOpen] = useState(false);
   const [quizHistory, setQuizHistory] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const [expandedReviewIdx, setExpandedReviewIdx] = useState(null);
 
   // Code Sandbox State
   const [sandboxCode, setSandboxCode] = useState(`// JavaScript Code Sandbox
@@ -127,8 +153,21 @@ console.log("Search Result Index:", searchTarget([10, 20, 30, 40, 50], 30));`);
     return () => clearInterval(timer);
   }, [activeTab, timerMode, timeLeft, currentQuestionIdx]);
 
+  // Save User Profile
+  const handleSaveProfile = (e) => {
+    e.preventDefault();
+    setUserProfile((prev) => ({
+      ...prev,
+      name: editNameInput.trim() || 'Guest Developer',
+      role: editRoleInput.trim() || 'Full-Stack Candidate'
+    }));
+    setIsProfileModalOpen(false);
+    playSuccessSound(isAudioMuted);
+  };
+
   // Start Prebuilt Quiz
   const handleStartPrebuiltQuiz = (cat) => {
+    playClickSound(isAudioMuted);
     setSelectedCategory(cat);
     let qList = prebuiltQuestions[cat.id] || prebuiltQuestions.dsa;
     if (questionType !== 'All') {
@@ -150,6 +189,7 @@ console.log("Search Result Index:", searchTarget([10, 20, 30, 40, 50], 30));`);
     e.preventDefault();
     if (!customPrompt.trim()) return;
 
+    playClickSound(isAudioMuted);
     setIsGeneratingAI(true);
     setGenerationStep('Parsing prompt context & topic semantics...');
     await new Promise((r) => setTimeout(r, 600));
@@ -180,14 +220,22 @@ console.log("Search Result Index:", searchTarget([10, 20, 30, 40, 50], 30));`);
 
   // Handle Option Select
   const handleOptionSelect = (optionIdx) => {
+    playSelectSound(isAudioMuted);
     setUserAnswers((prev) => ({
       ...prev,
       [currentQuestionIdx]: optionIdx
     }));
+
+    if (assessmentMode === 'practice') {
+      const isRight = optionIdx === questions[currentQuestionIdx].correctAnswerIndex;
+      if (isRight) playSuccessSound(isAudioMuted);
+      else playErrorSound(isAudioMuted);
+    }
   };
 
   // Set Confidence Rating
   const handleSetConfidence = (rating) => {
+    playClickSound(isAudioMuted);
     setConfidenceRatings((prev) => ({
       ...prev,
       [currentQuestionIdx]: rating
@@ -196,6 +244,7 @@ console.log("Search Result Index:", searchTarget([10, 20, 30, 40, 50], 30));`);
 
   // Toggle Flag Question
   const handleToggleFlag = () => {
+    playClickSound(isAudioMuted);
     setFlaggedQuestions((prev) => ({
       ...prev,
       [currentQuestionIdx]: !prev[currentQuestionIdx]
@@ -204,6 +253,7 @@ console.log("Search Result Index:", searchTarget([10, 20, 30, 40, 50], 30));`);
 
   // Open AI Tutor Explanation
   const handleOpenAITutor = (q = questions[currentQuestionIdx], ansIdx = userAnswers[currentQuestionIdx]) => {
+    playClickSound(isAudioMuted);
     const breakdown = getAITutorStepByStepExplanation(q, ansIdx ?? -1);
     setAiTutorBreakdown({ question: q, breakdown });
     setIsAITutorOpen(true);
@@ -211,6 +261,7 @@ console.log("Search Result Index:", searchTarget([10, 20, 30, 40, 50], 30));`);
 
   // Advance or Submit
   const handleNextOrSubmit = () => {
+    playClickSound(isAudioMuted);
     if (currentQuestionIdx < questions.length - 1) {
       setCurrentQuestionIdx((prev) => prev + 1);
       setTimeLeft(timerMode > 0 ? timerMode : 0);
@@ -234,6 +285,9 @@ console.log("Search Result Index:", searchTarget([10, 20, 30, 40, 50], 30));`);
     });
 
     const percentage = Math.round((correctCount / questions.length) * 100);
+
+    if (percentage >= 70) playSuccessSound(isAudioMuted);
+    else playErrorSound(isAudioMuted);
 
     let tier = 'Novice Practitioner';
     if (percentage === 100) tier = '🏆 Master CS & AI Architect';
@@ -280,22 +334,26 @@ console.log("Search Result Index:", searchTarget([10, 20, 30, 40, 50], 30));`);
 
   // Run Sandbox
   const handleRunSandbox = () => {
+    playClickSound(isAudioMuted);
     let logs = [];
     const customConsole = { log: (...args) => logs.push(args.join(' ')) };
     try {
       new Function('console', sandboxCode)(customConsole);
       setSandboxLogs(logs.length > 0 ? logs : ['Execution completed successfully.']);
+      playSuccessSound(isAudioMuted);
     } catch (err) {
       setSandboxLogs([`[Error]: ${err.message}`]);
+      playErrorSound(isAudioMuted);
     }
   };
 
   // Export JSON
   const handleExportJSON = () => {
+    playClickSound(isAudioMuted);
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
       title: "Smart AI Quiz & Assessment Scorecard",
       timestamp: new Date().toISOString(),
-      student: "Janardhan Devarala",
+      student: userProfile.name,
       topic: selectedCategory.title,
       difficulty,
       score: `${scoreResult.score} / ${scoreResult.totalQuestions} (${scoreResult.percentage}%)`,
@@ -331,7 +389,7 @@ console.log("Search Result Index:", searchTarget([10, 20, 30, 40, 50], 30));`);
                   Smart AI Quiz & Assessment Hub
                 </h3>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-red-500/20 text-red-400 border border-red-500/40">
-                  Red & Black Edition
+                  Red & Black SaaS
                 </span>
               </div>
               <p className="text-xs text-rose-300/80 font-mono">
@@ -340,12 +398,30 @@ console.log("Search Result Index:", searchTarget([10, 20, 30, 40, 50], 30));`);
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-2 rounded-xl bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsAudioMuted(!isAudioMuted)}
+              className="p-2 rounded-xl bg-slate-900 text-slate-300 hover:text-white border border-slate-800"
+              title={isAudioMuted ? "Unmute Audio FX" : "Mute Audio FX"}
+            >
+              {isAudioMuted ? <VolumeX className="w-4 h-4 text-slate-500" /> : <Volume2 className="w-4 h-4 text-red-500" />}
+            </button>
+
+            <button
+              onClick={() => setIsProfileModalOpen(true)}
+              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg"
+            >
+              <User className="w-3.5 h-3.5" />
+              <span>{userProfile.name}</span>
+            </button>
+
+            <button
+              onClick={onClose}
+              className="p-2 rounded-xl bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors ml-1"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Navigation Bar */}
@@ -362,7 +438,10 @@ console.log("Search Result Index:", searchTarget([10, 20, 30, 40, 50], 30));`);
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    playClickSound(isAudioMuted);
+                    setActiveTab(tab.id);
+                  }}
                   className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
                     activeTab === tab.id
                       ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-md shadow-red-600/30'
@@ -389,13 +468,13 @@ console.log("Search Result Index:", searchTarget([10, 20, 30, 40, 50], 30));`);
             <div className="space-y-6 animate-fadeIn">
               <div className="p-6 rounded-3xl bg-[#0c0f1a] border border-red-500/30 space-y-3">
                 <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-red-500/20 text-rose-300 border border-red-500/40">
-                  AI Recommendation Active
+                  AI Matrix Active
                 </span>
                 <h3 className="text-2xl font-black text-white">
-                  Welcome Back, <span className="bg-gradient-to-r from-red-500 via-rose-500 to-red-400 bg-clip-text text-transparent">Janardhan</span> 🚀
+                  Welcome Back, <span className="bg-gradient-to-r from-red-500 via-rose-500 to-red-400 bg-clip-text text-transparent">{userProfile.name}</span> 🚀
                 </h3>
                 <p className="text-xs text-slate-300">
-                  Recommended focus: Data Structures & Dynamic Programming optimizations.
+                  Role: <span className="text-white font-bold">{userProfile.role}</span> • Target: <span className="text-red-400 font-bold">{userProfile.targetGoal}</span>
                 </p>
                 <div className="pt-2 flex gap-3">
                   <button
@@ -406,10 +485,10 @@ console.log("Search Result Index:", searchTarget([10, 20, 30, 40, 50], 30));`);
                     <ArrowRight className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => setActiveTab('sandbox')}
+                    onClick={() => setIsProfileModalOpen(true)}
                     className="px-4 py-2.5 rounded-xl bg-slate-900 text-white border border-red-500/30 text-xs font-bold"
                   >
-                    Code Sandbox
+                    Profile Preferences
                   </button>
                 </div>
               </div>
@@ -551,6 +630,7 @@ console.log("Search Result Index:", searchTarget([10, 20, 30, 40, 50], 30));`);
               <div className="p-6 rounded-3xl bg-[#0c0f1a] border border-red-500/40 space-y-3">
                 <Award className="w-10 h-10 text-red-500 mx-auto" />
                 <h3 className="text-3xl font-black text-white">Score: {scoreResult.percentage}%</h3>
+                <p className="text-xs text-slate-400">Candidate: <span className="text-white font-bold">{userProfile.name}</span></p>
                 <p className="text-xs text-slate-300">{scoreResult.aiEvaluation}</p>
                 <div className="pt-2 flex justify-center gap-3">
                   <button
@@ -646,12 +726,54 @@ console.log("Search Result Index:", searchTarget([10, 20, 30, 40, 50], 30));`);
 
       </div>
 
+      {/* DYNAMIC USER PROFILE MODAL */}
+      {isProfileModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fadeIn">
+          <div className="relative w-full max-w-md bg-[#0c0f1a] rounded-3xl border border-red-500/40 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-red-500/30 pb-3">
+              <span className="text-xs font-mono font-bold text-red-500 uppercase">User Profile Customizer</span>
+              <button onClick={() => setIsProfileModalOpen(false)} className="text-slate-400 hover:text-white">✕</button>
+            </div>
+
+            <form onSubmit={handleSaveProfile} className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-xs font-mono text-red-400 font-bold">Your Display Name:</label>
+                <input
+                  type="text"
+                  value={editNameInput}
+                  onChange={(e) => setEditNameInput(e.target.value)}
+                  placeholder="Enter your name"
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#080a11] border border-red-500/30 text-white text-xs font-mono focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-mono text-red-400 font-bold">Target Role / Specialization:</label>
+                <input
+                  type="text"
+                  value={editRoleInput}
+                  onChange={(e) => setEditRoleInput(e.target.value)}
+                  placeholder="e.g. Full-Stack Candidate"
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#080a11] border border-red-500/30 text-white text-xs font-mono focus:outline-none"
+                  required
+                />
+              </div>
+
+              <button type="submit" className="w-full py-3 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 font-black text-xs text-white">
+                Save Profile Preferences
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* AI Tutor Drawer */}
       {isAITutorOpen && aiTutorBreakdown && (
         <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/80 backdrop-blur-sm animate-fadeIn">
           <div className="w-full max-w-md h-full bg-[#0c0f1a] border-l border-red-500/40 p-6 flex flex-col justify-between overflow-y-auto space-y-4 shadow-2xl text-slate-100">
             <div className="flex items-center justify-between border-b border-red-500/30 pb-3">
-              <span className="text-xs font-mono font-bold text-red-500">AI Tutor Step-by-Step Explanation</span>
+              <span className="text-xs font-mono font-bold text-red-500">AI Tutor Explanation</span>
               <button onClick={() => setIsAITutorOpen(false)} className="text-slate-400 hover:text-white">✕</button>
             </div>
 
@@ -677,7 +799,7 @@ console.log("Search Result Index:", searchTarget([10, 20, 30, 40, 50], 30));`);
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fadeIn">
           <div className="relative w-full max-w-xl bg-[#0c0f1a] rounded-3xl border-2 border-red-500/60 p-6 shadow-2xl text-center space-y-4">
             <h3 className="text-2xl font-black text-white">Official Certificate of Completion</h3>
-            <p className="text-xs text-slate-300">Certifies that <span className="text-red-400 font-bold">Janardhan Devarala</span> has mastered <span className="font-bold text-white">{scoreResult.topicName}</span> with {scoreResult.percentage}% score.</p>
+            <p className="text-xs text-slate-300">Certifies that <span className="text-red-400 font-bold">{userProfile.name}</span> has mastered <span className="font-bold text-white">{scoreResult.topicName}</span> with {scoreResult.percentage}% score.</p>
             <div className="pt-2 flex justify-center gap-2">
               <button onClick={() => window.print()} className="px-5 py-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white text-xs font-black">
                 Print / Download Certificate
