@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, MessageSquare, Eye, RefreshCw, Smile, Brain, Moon, Zap, AlertCircle } from 'lucide-react';
+import { Sparkles, MessageSquare, Eye } from 'lucide-react';
 
 export default function Avatar3D({ 
   isSpeaking = false, 
@@ -8,9 +8,12 @@ export default function Avatar3D({
   compact = false 
 }) {
   const [shape, setShape] = useState('circle'); // circle, squircle, capsule, blob
-  const [expression, setExpression] = useState('attentive'); // attentive, happy, excited, surprised, thinking, wink, sleepy
+  const [expressionIndex, setExpressionIndex] = useState(0);
   const [colorTheme, setColorTheme] = useState('black'); // black, gold, cyan, purple
   
+  const expressionsList = ['attentive', 'happy', 'excited', 'surprised', 'wink', 'thinking'];
+  const expression = expressionsList[expressionIndex];
+
   // Real-time smooth eye lerp state
   const targetEye = useRef({ x: 0, y: 0 });
   const currentEye = useRef({ x: 0, y: 0 });
@@ -25,20 +28,23 @@ export default function Avatar3D({
   const [isBlinking, setIsBlinking] = useState(false);
   const containerRef = useRef(null);
 
+  // Cycle expression on click
+  const handleBodyClick = (e) => {
+    setExpressionIndex((prev) => (prev + 1) % expressionsList.length);
+    if (onAvatarClick) onAvatarClick(e);
+  };
+
   // Smooth lerp 60fps animation loop
   useEffect(() => {
     let animId;
     const updateLerp = () => {
-      // Thinking mode eye drift
       if (expression === 'thinking') {
         targetEye.current = { x: -8, y: -10 };
       }
 
-      // Lerp Eye Position
       currentEye.current.x += (targetEye.current.x - currentEye.current.x) * 0.08;
       currentEye.current.y += (targetEye.current.y - currentEye.current.y) * 0.08;
 
-      // Lerp Tilt Position
       currentTilt.current.rx += (targetTilt.current.rx - currentTilt.current.rx) * 0.06;
       currentTilt.current.ry += (targetTilt.current.ry - currentTilt.current.ry) * 0.06;
 
@@ -52,10 +58,10 @@ export default function Avatar3D({
     return () => cancelAnimationFrame(animId);
   }, [expression]);
 
-  // Mouse movement listener for smooth target position calculation
+  // Mouse movement listener
   useEffect(() => {
     const handleMouseMove = (e) => {
-      if (!containerRef.current || expression === 'thinking' || expression === 'sleepy') return;
+      if (!containerRef.current || expression === 'thinking') return;
       const rect = containerRef.current.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
@@ -83,10 +89,9 @@ export default function Avatar3D({
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [expression]);
 
-  // Natural periodic blinking loop (every 3.5 - 5 seconds)
+  // Periodic blinking
   useEffect(() => {
     const triggerBlink = () => {
-      if (expression === 'sleepy') return;
       setIsBlinking(true);
       setTimeout(() => setIsBlinking(false), 180);
     };
@@ -98,29 +103,24 @@ export default function Avatar3D({
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [expression]);
+  }, []);
 
-  // Color theme map
   const colorMap = {
-    black: { stroke: '#f59e0b', shadow: 'rgba(245, 158, 11, 0.4)', fill: '#0a0d14' },
-    gold: { stroke: '#ffffff', shadow: 'rgba(251, 191, 36, 0.6)', fill: '#d97706' },
-    cyan: { stroke: '#38bdf8', shadow: 'rgba(56, 189, 248, 0.5)', fill: '#0e7490' },
-    purple: { stroke: '#c084fc', shadow: 'rgba(192, 132, 252, 0.5)', fill: '#581c87' }
+    black: { stroke: '#f59e0b', shadow: 'rgba(245, 158, 11, 0.4)' },
+    gold: { stroke: '#ffffff', shadow: 'rgba(251, 191, 36, 0.6)' },
+    cyan: { stroke: '#38bdf8', shadow: 'rgba(56, 189, 248, 0.5)' },
+    purple: { stroke: '#c084fc', shadow: 'rgba(192, 132, 252, 0.5)' }
   };
 
   const activeColor = colorMap[colorTheme];
 
-  // Render Realistic 3D Eyes based on Expressions & Moods
+  // Render Realistic 3D Eyes
   const renderRealistic3DEyes = () => {
-    if (isBlinking || expression === 'sleepy') {
+    if (isBlinking) {
       return (
         <g>
-          {/* Eyelid Blink Arcs */}
           <path d="M-36,-3 Q-22,12 -8,-3" fill="none" stroke="#ffffff" strokeWidth="4.5" strokeLinecap="round" />
           <path d="M8,-3 Q22,12 36,-3" fill="none" stroke="#ffffff" strokeWidth="4.5" strokeLinecap="round" />
-          {expression === 'sleepy' && (
-            <text x="45" y="-20" fill="#fbbf24" fontStyle="italic" fontSize="16" fontWeight="bold" className="animate-pulse">zZz...</text>
-          )}
         </g>
       );
     }
@@ -128,10 +128,8 @@ export default function Avatar3D({
     if (expression === 'happy') {
       return (
         <g transform={`translate(${renderEyePos.x * 0.5}, ${renderEyePos.y * 0.5})`}>
-          {/* Smiling Arcs */}
           <path d="M-36,5 Q-22,-15 -8,5" fill="none" stroke="#ffffff" strokeWidth="5" strokeLinecap="round" />
           <path d="M8,5 Q22,-15 36,5" fill="none" stroke="#ffffff" strokeWidth="5" strokeLinecap="round" />
-          {/* Blushing Cheeks */}
           <circle cx="-38" cy="18" r="8" fill="#f43f5e" opacity="0.6" />
           <circle cx="38" cy="18" r="8" fill="#f43f5e" opacity="0.6" />
         </g>
@@ -141,10 +139,8 @@ export default function Avatar3D({
     if (expression === 'surprised') {
       return (
         <g transform={`translate(${renderEyePos.x}, ${renderEyePos.y})`}>
-          {/* Eyebrows Raised */}
           <path d="M-35,-26 Q-22,-34 -10,-26" fill="none" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round" />
           <path d="M10,-26 Q22,-34 35,-26" fill="none" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round" />
-          {/* Wide Eyeballs */}
           <ellipse cx="-24" cy="-5" rx="17" ry="22" fill="url(#eyeballGrad)" stroke="#fbbf24" strokeWidth="1.5" />
           <ellipse cx="-24" cy="-5" rx="10" ry="13" fill="url(#irisGoldGrad)" />
           <circle cx="-24" cy="-5" r="5" fill="#04060a" />
@@ -161,7 +157,6 @@ export default function Avatar3D({
     if (expression === 'excited') {
       return (
         <g transform={`translate(${renderEyePos.x}, ${renderEyePos.y})`}>
-          {/* Starry Eyeballs */}
           <g transform="translate(-24, -5)">
             <ellipse cx="0" cy="0" rx="16" ry="20" fill="url(#eyeballGrad)" />
             <polygon points="0,-10 3,-3 10,0 3,3 0,10 -3,3 -10,0 -3,-3" fill="#fbbf24" />
@@ -177,28 +172,24 @@ export default function Avatar3D({
     if (expression === 'wink') {
       return (
         <g transform={`translate(${renderEyePos.x}, ${renderEyePos.y})`}>
-          {/* Left Realistic 3D Eye */}
           <g transform="translate(-24, -5)">
             <ellipse cx="0" cy="0" rx="14" ry="18" fill="url(#eyeballGrad)" stroke="#1e293b" strokeWidth="1" />
             <ellipse cx="0" cy="0" rx="9" ry="11" fill="url(#irisGoldGrad)" />
             <circle cx="0" cy="0" r="4.5" fill="#05070a" />
             <circle cx="-3" cy="-4" r="2.5" fill="#ffffff" opacity="0.9" />
           </g>
-          {/* Right Winking Arc */}
           <path d="M12,-2 Q24,-14 36,-2" fill="none" stroke="#ffffff" strokeWidth="4.5" strokeLinecap="round" />
         </g>
       );
     }
 
-    // Default Realistic 3D Eyeballs (Attentive / Thinking)
+    // Default Attentive / Thinking
     return (
       <g transform={`translate(${renderEyePos.x}, ${renderEyePos.y})`}>
-        {/* Eyebrows */}
         {expression === 'thinking' && (
           <path d="M-34,-24 L-12,-20 M12,-20 L34,-24" stroke="#fbbf24" strokeWidth="2.5" strokeLinecap="round" />
         )}
 
-        {/* Left Eyeball */}
         <g transform="translate(-24, -5)">
           <ellipse cx="0" cy="0" rx="15" ry="20" fill="url(#eyeballGrad)" filter="drop-shadow(0px 4px 6px rgba(0,0,0,0.5))" />
           <ellipse cx="0" cy="0" rx="9.5" ry="12.5" fill="url(#irisGoldGrad)" stroke="#b45309" strokeWidth="0.8" />
@@ -207,7 +198,6 @@ export default function Avatar3D({
           <circle cx="3" cy="4" r="1.4" fill="#ffffff" opacity="0.75" />
         </g>
 
-        {/* Right Eyeball */}
         <g transform="translate(24, -5)">
           <ellipse cx="0" cy="0" rx="15" ry="20" fill="url(#eyeballGrad)" filter="drop-shadow(0px 4px 6px rgba(0,0,0,0.5))" />
           <ellipse cx="0" cy="0" rx="9.5" ry="12.5" fill="url(#irisGoldGrad)" stroke="#b45309" strokeWidth="0.8" />
@@ -219,7 +209,6 @@ export default function Avatar3D({
     );
   };
 
-  // Shape Path Generator
   const getShapePath = () => {
     if (shape === 'squircle') return "M-70,-60 Q0,-80 70,-60 Q85,0 70,60 Q0,80 -70,60 Q-85,0 -70,-60 Z";
     if (shape === 'capsule') return "M-50,-75 Q0,-80 50,-75 Q75,-40 75,40 Q50,80 0,80 Q-50,80 -75,40 Q-75,-40 -50,-75 Z";
@@ -249,7 +238,7 @@ export default function Avatar3D({
       {/* Speech Bubble */}
       {currentSpeech && (
         <div 
-          onClick={onAvatarClick}
+          onClick={handleBodyClick}
           className="cursor-pointer mb-3 max-w-xs px-4 py-2.5 rounded-2xl bg-slate-900/95 border border-amber-500/40 text-slate-100 text-xs font-semibold shadow-[0_0_20px_rgba(245,158,11,0.25)] backdrop-blur-md transition-all transform hover:scale-105 flex items-center gap-2.5 animate-bounce-slow"
         >
           <MessageSquare className={`w-4 h-4 shrink-0 ${isSpeaking ? 'text-amber-400 animate-pulse' : 'text-amber-500'}`} />
@@ -257,15 +246,16 @@ export default function Avatar3D({
         </div>
       )}
 
-      {/* 3D Realistic Interactive Avatar Body */}
+      {/* 3D Realistic Interactive Avatar Body (Click to Cycle Expression/Mood) */}
       <div 
-        onClick={onAvatarClick}
+        onClick={handleBodyClick}
         style={{
           transform: `perspective(1000px) rotateX(${renderTilt.rx}deg) rotateY(${renderTilt.ry}deg)`,
           transformStyle: 'preserve-3d',
           transition: 'transform 0.05s linear'
         }}
         className="relative cursor-pointer w-44 h-44 sm:w-52 sm:h-52 flex items-center justify-center"
+        title="Click Avatar to change mood expression!"
       >
         {/* Glow Aura */}
         <div 
@@ -275,21 +265,18 @@ export default function Avatar3D({
 
         <svg viewBox="-100 -100 200 200" className="w-full h-full drop-shadow-[0_20px_35px_rgba(0,0,0,0.7)]">
           <defs>
-            {/* Body Gradient */}
             <radialGradient id="avatar3dGrad" cx="30%" cy="30%" r="75%">
               <stop offset="0%" stopColor="#1e293b"/>
               <stop offset="45%" stopColor="#0c101d"/>
               <stop offset="100%" stopColor="#04060a"/>
             </radialGradient>
 
-            {/* Realistic Eyeball Sclera Gradient */}
             <radialGradient id="eyeballGrad" cx="35%" cy="35%" r="70%">
               <stop offset="0%" stopColor="#ffffff" />
               <stop offset="70%" stopColor="#f1f5f9" />
               <stop offset="100%" stopColor="#cbd5e1" />
             </radialGradient>
 
-            {/* Realistic Golden Iris Gradient */}
             <radialGradient id="irisGoldGrad" cx="30%" cy="30%" r="70%">
               <stop offset="0%" stopColor="#fef08a" />
               <stop offset="40%" stopColor="#fbbf24" />
@@ -308,7 +295,7 @@ export default function Avatar3D({
           {/* Glossy 3D Highlight Sheen */}
           <ellipse cx="-25" cy="-35" rx="35" ry="18" fill="#ffffff" opacity="0.13" transform="rotate(-25 -25 -35)" />
 
-          {/* Render Realistic 3D Eyes & Expressions */}
+          {/* Render Realistic 3D Eyes */}
           {renderRealistic3DEyes()}
 
           {/* Audio Speaking Soundwaves */}
@@ -327,52 +314,22 @@ export default function Avatar3D({
         />
       </div>
 
-      {/* Avatar Toolbar Controls with Expressions & Mood Selector */}
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-2 p-2 rounded-2xl bg-slate-900/90 border border-slate-800 backdrop-blur-md shadow-lg text-[11px] font-semibold text-slate-300">
-        
-        {/* Shape Picker */}
-        <div className="flex items-center gap-1 border-r border-slate-800 pr-2">
-          <Eye className="w-3.5 h-3.5 text-amber-400" />
-          {['circle', 'squircle', 'capsule', 'blob'].map((s) => (
-            <button
-              key={s}
-              onClick={() => setShape(s)}
-              className={`px-2 py-0.5 rounded-lg capitalize transition-colors ${
-                shape === s ? 'bg-amber-500 text-slate-950 font-bold' : 'hover:bg-slate-800 text-slate-400'
-              }`}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-
-        {/* Mood Expressions Trigger */}
-        <div className="flex items-center gap-1">
-          {[
-            { id: 'attentive', label: 'Attentive', icon: Eye },
-            { id: 'happy', label: 'Happy', icon: Smile },
-            { id: 'thinking', label: 'Thinking', icon: Brain },
-            { id: 'sleepy', label: 'Sleepy', icon: Moon }
-          ].map((m) => {
-            const IconComp = m.icon;
-            const isActive = expression === m.id;
-            return (
-              <button
-                key={m.id}
-                onClick={() => setExpression(m.id)}
-                className={`px-2 py-0.5 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all ${
-                  isActive
-                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                }`}
-              >
-                <IconComp className="w-3 h-3" />
-                <span>{m.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
+      {/* Avatar Toolbar Shape Controls (Clean & Subtle, No Mood Text Titles) */}
+      <div className="mt-3 flex items-center gap-1.5 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800 backdrop-blur-md shadow-lg text-[11px] font-semibold text-slate-300">
+        <Eye className="w-3.5 h-3.5 text-amber-400 ml-1" />
+        <span className="text-[10px] text-slate-400 font-mono">Click Avatar to change mood</span>
+        <div className="h-3 w-px bg-slate-800 mx-1" />
+        {['circle', 'squircle', 'capsule', 'blob'].map((s) => (
+          <button
+            key={s}
+            onClick={() => setShape(s)}
+            className={`px-2 py-0.5 rounded-lg capitalize transition-colors ${
+              shape === s ? 'bg-amber-500 text-slate-950 font-bold' : 'hover:bg-slate-800 text-slate-400'
+            }`}
+          >
+            {s}
+          </button>
+        ))}
       </div>
 
     </div>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="100%" height="100%">
+  <defs>
+    <linearGradient id="nasBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1000" height="700" fill="url(#nasBg)"/>
+  <rect x="25" y="25" width="950" height="650" rx="16" fill="none" stroke="#06b6d4" stroke-width="4"/>
+  <rect x="40" y="40" width="920" height="620" rx="12" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="8,4"/>
+
+  <text x="500" y="110" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="26" font-weight="900" fill="#06b6d4" letter-spacing="2">NASSCOM FutureSkills Prime</text>
+  <text x="500" y="145" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="14" fill="#94a3b8">A Digital India Initiative by MeitY &amp; IT Industry Council</text>
+
+  <g transform="translate(500, 240)">
+    <circle cx="0" cy="0" r="50" fill="#0e7490" stroke="#06b6d4" stroke-width="3"/>
+    <path d="M-20,-10 L0,-25 L20,-10 L20,15 L0,25 L-20,15 Z" fill="#38bdf8"/>
+  </g>
+
+  <text x="500" y="340" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="18" fill="#cbd5e1">Verified Industry Skill Certification Awarded To</text>
+  <text x="500" y="390" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="38" font-weight="900" fill="#ffffff">JANARDHAN DEVARALA</text>
+
+  <text x="500" y="440" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="16" fill="#94a3b8">for demonstrating competency in</text>
+  <text x="500" y="475" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="800" fill="#38bdf8">Emerging Technologies &amp; Software Development Standards</text>
+
+  <rect x="330" y="525" width="340" height="40" rx="8" fill="#0f172a" stroke="#06b6d4" stroke-width="1"/>
+  <text x="500" y="550" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#38bdf8">Credential ID: NASSCOM-FSP-2026</text>
+</svg>
