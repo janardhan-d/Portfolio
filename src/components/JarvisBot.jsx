@@ -117,7 +117,6 @@ export default function JarvisBot({ activeSection = 'home', onOpenResume }) {
   };
 
   const activeContext = sectionContexts[activeSection] || sectionContexts.home;
-  const lastAssistantMessage = messages.filter(m => m.sender === 'assistant').pop()?.text || "Ask me anything!";
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
@@ -143,17 +142,20 @@ export default function JarvisBot({ activeSection = 'home', onOpenResume }) {
         </button>
       )}
 
-      {/* Main Unified AI Assistant Chat Modal */}
+      {/* Main Unified AI Assistant Chat Window */}
       {isOpen && (
-        <div className="w-[360px] sm:w-[420px] h-[580px] glass-panel rounded-3xl border border-amber-500/50 shadow-2xl flex flex-col overflow-hidden animate-fade-in">
+        <div className="w-[360px] sm:w-[420px] h-[550px] sm:h-[600px] glass-panel rounded-3xl border border-amber-500/50 shadow-2xl flex flex-col overflow-hidden animate-fade-in">
           
-          {/* Chat Header */}
-          <div className="p-4 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <Bot className="w-5 h-5 text-amber-400" />
+          {/* Compact Integrated Header with Mini Animated Avatar */}
+          <div className="p-3.5 bg-slate-900/95 border-b border-slate-800 flex items-center justify-between shadow-md">
+            <div className="flex items-center gap-3">
+              <Avatar3D compact isSpeaking={isSpeaking} />
               <div>
-                <h3 className="font-extrabold text-white text-sm">Janardhan's AI Assistant</h3>
-                <span className="text-[10px] font-mono text-amber-300">Observing: {activeContext.title}</span>
+                <h3 className="font-extrabold text-white text-sm flex items-center gap-1.5">
+                  <span>AI Portfolio Guide</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                </h3>
+                <span className="text-[10px] font-mono text-amber-400">Observing: {activeContext.title}</span>
               </div>
             </div>
 
@@ -177,27 +179,18 @@ export default function JarvisBot({ activeSection = 'home', onOpenResume }) {
             </div>
           </div>
 
-          {/* Unified 3D Avatar Display Header inside Chat Window */}
-          <div className="p-4 bg-slate-950/80 border-b border-slate-800 flex flex-col items-center justify-center">
-            <Avatar3D 
-              isSpeaking={isSpeaking} 
-              onAvatarClick={() => speakText(lastAssistantMessage)}
-              currentSpeech={lastAssistantMessage.length > 70 ? lastAssistantMessage.slice(0, 70) + '...' : lastAssistantMessage}
-            />
-          </div>
-
-          {/* Messages Body */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-4 text-xs font-medium">
+          {/* Full Height Scrollable Messages Body */}
+          <div className="flex-1 p-4 overflow-y-auto space-y-4 text-xs font-medium bg-slate-950/60">
             {messages.map((msg, idx) => (
               <div
                 key={idx}
                 className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
               >
                 <div
-                  className={`max-w-[85%] p-3.5 rounded-2xl ${
+                  className={`max-w-[88%] p-3.5 rounded-2xl ${
                     msg.sender === 'user'
-                      ? 'bg-amber-500 text-slate-950 font-semibold rounded-br-none shadow-md'
-                      : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-none shadow-md'
+                      ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-bold rounded-br-none shadow-md'
+                      : 'bg-slate-900/90 border border-amber-500/30 text-slate-100 rounded-bl-none shadow-md'
                   }`}
                 >
                   <p className="leading-relaxed">{msg.text}</p>
@@ -205,14 +198,14 @@ export default function JarvisBot({ activeSection = 'home', onOpenResume }) {
 
                 <span className="text-[9px] font-mono text-slate-500 mt-1 px-1">{msg.timestamp}</span>
 
-                {/* Quick Chips */}
+                {/* Quick Suggestion Chips */}
                 {msg.chips && msg.chips.length > 0 && (
                   <div className="mt-2.5 flex flex-wrap gap-1.5">
                     {msg.chips.map((chip, cIdx) => (
                       <button
                         key={cIdx}
                         onClick={() => handleSendMessage(chip)}
-                        className="px-2.5 py-1 rounded-full bg-slate-900 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-mono transition-colors"
+                        className="px-3 py-1 rounded-full bg-slate-900 hover:bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-mono transition-colors active:scale-95"
                       >
                         + {chip}
                       </button>
@@ -224,15 +217,15 @@ export default function JarvisBot({ activeSection = 'home', onOpenResume }) {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Bar */}
+          {/* Bottom Chat Input Bar */}
           <div className="p-3 bg-slate-900/90 border-t border-slate-800 flex items-center gap-2">
             <input
               type="text"
               value={inputQuery}
               onChange={(e) => setInputQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="Ask AI about skills, projects, contact..."
-              className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-amber-500"
+              placeholder="Ask AI about skills, projects, credentials..."
+              className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-amber-500 font-medium"
             />
             <button
               onClick={() => handleSendMessage()}

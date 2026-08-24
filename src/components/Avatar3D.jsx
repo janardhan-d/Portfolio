@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, MessageSquare, Eye } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 
 export default function Avatar3D({ 
   isSpeaking = false, 
@@ -7,15 +7,15 @@ export default function Avatar3D({
   currentSpeech = '', 
   compact = false 
 }) {
-  const [shape, setShape] = useState('circle'); // circle, squircle, capsule, blob
+  const [shape, setShape] = useState('circle');
   const [expressionIndex, setExpressionIndex] = useState(0);
-  const [colorTheme, setColorTheme] = useState('black'); // black, gold, cyan, purple
+  const [colorTheme, setColorTheme] = useState('black');
   const [speakMouthOpen, setSpeakMouthOpen] = useState(false);
   
   const expressionsList = ['attentive', 'happy', 'excited', 'surprised', 'wink', 'thinking'];
   const expression = expressionsList[expressionIndex];
 
-  // Real-time smooth eye lerp state
+  // Real-time smooth eye & mouth lerp state
   const targetEye = useRef({ x: 0, y: 0 });
   const currentEye = useRef({ x: 0, y: 0 });
   const [renderEyePos, setRenderEyePos] = useState({ x: 0, y: 0 });
@@ -35,7 +35,7 @@ export default function Avatar3D({
     if (isSpeaking) {
       interval = setInterval(() => {
         setSpeakMouthOpen((prev) => !prev);
-      }, 140);
+      }, 130);
     } else {
       setSpeakMouthOpen(false);
     }
@@ -56,11 +56,11 @@ export default function Avatar3D({
         targetEye.current = { x: -8, y: -10 };
       }
 
-      currentEye.current.x += (targetEye.current.x - currentEye.current.x) * 0.08;
-      currentEye.current.y += (targetEye.current.y - currentEye.current.y) * 0.08;
+      currentEye.current.x += (targetEye.current.x - currentEye.current.x) * 0.09;
+      currentEye.current.y += (targetEye.current.y - currentEye.current.y) * 0.09;
 
-      currentTilt.current.rx += (targetTilt.current.rx - currentTilt.current.rx) * 0.06;
-      currentTilt.current.ry += (targetTilt.current.ry - currentTilt.current.ry) * 0.06;
+      currentTilt.current.rx += (targetTilt.current.rx - currentTilt.current.rx) * 0.07;
+      currentTilt.current.ry += (targetTilt.current.ry - currentTilt.current.ry) * 0.07;
 
       setRenderEyePos({ x: currentEye.current.x, y: currentEye.current.y });
       setRenderTilt({ rx: currentTilt.current.rx, ry: currentTilt.current.ry });
@@ -120,13 +120,10 @@ export default function Avatar3D({
   }, []);
 
   const colorMap = {
-    black: { stroke: '#f59e0b', shadow: 'rgba(245, 158, 11, 0.4)' },
-    gold: { stroke: '#ffffff', shadow: 'rgba(251, 191, 36, 0.6)' },
-    cyan: { stroke: '#38bdf8', shadow: 'rgba(56, 189, 248, 0.5)' },
-    purple: { stroke: '#c084fc', shadow: 'rgba(192, 132, 252, 0.5)' }
+    black: { stroke: '#f59e0b', shadow: 'rgba(245, 158, 11, 0.4)' }
   };
 
-  const activeColor = colorMap[colorTheme];
+  const activeColor = colorMap.black;
 
   // Render Realistic 3D Eyes
   const renderRealistic3DEyes = () => {
@@ -223,69 +220,43 @@ export default function Avatar3D({
     );
   };
 
-  // Dynamic Interactive Mouth Renderer
+  // Dynamic Interactive Mouth Renderer (Synchronized to Eye/Face lerp movement)
   const renderDynamicMouth = () => {
-    if (isSpeaking) {
-      return speakMouthOpen ? (
-        <g transform="translate(0, 24)">
-          <path d="M-14,0 Q0,20 14,0 Z" fill="#04060a" stroke="#fbbf24" strokeWidth="1.5" />
-          <path d="M-10,2 Q0,-2 10,2" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" />
-          <ellipse cx="0" cy="11" rx="6" ry="4" fill="#f43f5e" />
-        </g>
-      ) : (
-        <path d="M-12,24 Q0,30 12,24" fill="none" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" />
-      );
-    }
-
-    if (expression === 'happy') {
-      return (
-        <g transform="translate(0, 22)">
-          <path d="M-15,0 Q0,22 15,0 Z" fill="#04060a" stroke="#ffffff" strokeWidth="1.5" />
-          <path d="M-11,2 Q0,-2 11,2" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" />
-          <ellipse cx="0" cy="12" rx="7" ry="4" fill="#f43f5e" opacity="0.85" />
-        </g>
-      );
-    }
-
-    if (expression === 'excited') {
-      return (
-        <g transform="translate(0, 20)">
-          <path d="M-18,0 Q0,28 18,0 Z" fill="#04060a" stroke="#fbbf24" strokeWidth="2" />
-          <path d="M-13,2 Q0,-3 13,2" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
-          <ellipse cx="0" cy="15" rx="8" ry="5" fill="#f43f5e" />
-        </g>
-      );
-    }
-
-    if (expression === 'surprised') {
-      return (
-        <ellipse cx="0" cy="26" rx="8" ry="11" fill="#04060a" stroke="#fbbf24" strokeWidth="2" />
-      );
-    }
-
-    if (expression === 'thinking') {
-      return (
-        <path d="M-12,26 Q-4,20 4,28 T12,24" fill="none" stroke="#fbbf24" strokeWidth="3.5" strokeLinecap="round" />
-      );
-    }
-
-    if (expression === 'wink') {
-      return (
-        <path d="M-10,24 Q4,32 14,22" fill="none" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" />
-      );
-    }
-
-    // Default Attentive Mouth Curve
     return (
-      <path d="M-14,25 Q0,33 14,25" fill="none" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" />
+      <g transform={`translate(${renderEyePos.x * 0.5}, ${renderEyePos.y * 0.4})`}>
+        {isSpeaking ? (
+          speakMouthOpen ? (
+            <g transform="translate(0, 24)">
+              <path d="M-14,0 Q0,20 14,0 Z" fill="#04060a" stroke="#fbbf24" strokeWidth="1.5" />
+              <path d="M-10,2 Q0,-2 10,2" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" />
+              <ellipse cx="0" cy="11" rx="6" ry="4" fill="#f43f5e" />
+            </g>
+          ) : (
+            <path d="M-12,24 Q0,30 12,24" fill="none" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" />
+          )
+        ) : expression === 'happy' ? (
+          <g transform="translate(0, 22)">
+            <path d="M-15,0 Q0,22 15,0 Z" fill="#04060a" stroke="#ffffff" strokeWidth="1.5" />
+            <path d="M-11,2 Q0,-2 11,2" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" />
+            <ellipse cx="0" cy="12" rx="7" ry="4" fill="#f43f5e" opacity="0.85" />
+          </g>
+        ) : expression === 'excited' ? (
+          <g transform="translate(0, 20)">
+            <path d="M-18,0 Q0,28 18,0 Z" fill="#04060a" stroke="#fbbf24" strokeWidth="2" />
+            <path d="M-13,2 Q0,-3 13,2" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
+            <ellipse cx="0" cy="15" rx="8" ry="5" fill="#f43f5e" />
+          </g>
+        ) : expression === 'surprised' ? (
+          <ellipse cx="0" cy="26" rx="8" ry="11" fill="#04060a" stroke="#fbbf24" strokeWidth="2" />
+        ) : expression === 'thinking' ? (
+          <path d="M-12,26 Q-4,20 4,28 T12,24" fill="none" stroke="#fbbf24" strokeWidth="3.5" strokeLinecap="round" />
+        ) : expression === 'wink' ? (
+          <path d="M-10,24 Q4,32 14,22" fill="none" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" />
+        ) : (
+          <path d="M-14,25 Q0,33 14,25" fill="none" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" />
+        )}
+      </g>
     );
-  };
-
-  const getShapePath = () => {
-    if (shape === 'squircle') return "M-70,-60 Q0,-80 70,-60 Q85,0 70,60 Q0,80 -70,60 Q-85,0 -70,-60 Z";
-    if (shape === 'capsule') return "M-50,-75 Q0,-80 50,-75 Q75,-40 75,40 Q50,80 0,80 Q-50,80 -75,40 Q-75,-40 -50,-75 Z";
-    if (shape === 'blob') return "M-65,-60 Q0,-85 65,-60 Q85,10 55,65 Q-10,85 -65,55 Q-85,-10 -65,-60 Z";
-    return "M0,0";
   };
 
   if (compact) {
@@ -319,7 +290,7 @@ export default function Avatar3D({
         </div>
       )}
 
-      {/* 3D Realistic Interactive Avatar Body (Click to Cycle Expression/Mood) */}
+      {/* 3D Realistic Interactive Avatar Body */}
       <div 
         onClick={handleBodyClick}
         style={{
@@ -328,7 +299,6 @@ export default function Avatar3D({
           transition: 'transform 0.05s linear'
         }}
         className="relative cursor-pointer w-44 h-44 sm:w-52 sm:h-52 flex items-center justify-center"
-        title="Click Avatar to change mood & mouth expressions!"
       >
         {/* Glow Aura */}
         <div 
@@ -359,11 +329,7 @@ export default function Avatar3D({
           </defs>
 
           {/* Main Body */}
-          {shape === 'circle' ? (
-            <circle cx="0" cy="0" r="74" fill="url(#avatar3dGrad)" stroke={activeColor.stroke} strokeWidth="3.5" />
-          ) : (
-            <path d={getShapePath()} fill="url(#avatar3dGrad)" stroke={activeColor.stroke} strokeWidth="3.5" />
-          )}
+          <circle cx="0" cy="0" r="74" fill="url(#avatar3dGrad)" stroke={activeColor.stroke} strokeWidth="3.5" />
 
           {/* Glossy 3D Highlight Sheen */}
           <ellipse cx="-25" cy="-35" rx="35" ry="18" fill="#ffffff" opacity="0.13" transform="rotate(-25 -25 -35)" />
@@ -371,7 +337,7 @@ export default function Avatar3D({
           {/* Render Realistic 3D Eyes */}
           {renderRealistic3DEyes()}
 
-          {/* Render Dynamic Interactive Mouth */}
+          {/* Render Dynamic Interactive Mouth (Synchronized to Eye Motion) */}
           {renderDynamicMouth()}
 
           {/* Audio Speaking Soundwaves */}
@@ -388,24 +354,6 @@ export default function Avatar3D({
         <div 
           className="absolute -bottom-4 w-3/4 h-5 rounded-full bg-black/70 blur-md transform scale-x-90 transition-all group-hover:scale-x-110"
         />
-      </div>
-
-      {/* Avatar Toolbar Shape Controls */}
-      <div className="mt-3 flex items-center gap-1.5 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800 backdrop-blur-md shadow-lg text-[11px] font-semibold text-slate-300">
-        <Eye className="w-3.5 h-3.5 text-amber-400 ml-1" />
-        <span className="text-[10px] text-slate-400 font-mono">Click avatar for mouth &amp; mood!</span>
-        <div className="h-3 w-px bg-slate-800 mx-1" />
-        {['circle', 'squircle', 'capsule', 'blob'].map((s) => (
-          <button
-            key={s}
-            onClick={() => setShape(s)}
-            className={`px-2 py-0.5 rounded-lg capitalize transition-colors ${
-              shape === s ? 'bg-amber-500 text-slate-950 font-bold' : 'hover:bg-slate-800 text-slate-400'
-            }`}
-          >
-            {s}
-          </button>
-        ))}
       </div>
 
     </div>
