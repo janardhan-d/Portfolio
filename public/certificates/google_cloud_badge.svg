@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="100%" height="100%">
+  <defs>
+    <linearGradient id="gcpBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8fafc"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1000" height="700" fill="url(#gcpBg)"/>
+  <rect x="25" y="25" width="950" height="650" rx="16" fill="none" stroke="#ea4335" stroke-width="4"/>
+  <rect x="40" y="40" width="920" height="620" rx="12" fill="none" stroke="#4285f4" stroke-width="1.5" stroke-dasharray="8,4"/>
+
+  <!-- Google Cloud Logo Colors -->
+  <g transform="translate(420, 90)">
+    <path d="M-50,0 Q-50,-40 0,-40 Q40,-40 50,0 Z" fill="#4285f4"/>
+    <path d="M50,0 Q50,40 0,40 Q-40,40 -50,0 Z" fill="#34a853"/>
+    <circle cx="0" cy="0" r="25" fill="#fbbc05"/>
+    <circle cx="0" cy="0" r="15" fill="#ea4335"/>
+  </g>
+  <text x="500" y="165" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="800" fill="#1f2937">Google Cloud Platform</text>
+
+  <text x="500" y="270" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="20" fill="#4b5563">Verified Skill Credentials Issued To</text>
+  <text x="500" y="325" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="38" font-weight="900" fill="#111827">JANARDHAN DEVARALA</text>
+
+  <!-- Skill Badges Cards Grid -->
+  <g transform="translate(140, 390)">
+    <!-- Badge 1 -->
+    <rect x="0" y="0" width="220" height="120" rx="12" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="110" y="45" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" fill="#1d4ed8">Responsible AI</text>
+    <text x="110" y="75" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" fill="#64748b">Skill Badge Credential</text>
+
+    <!-- Badge 2 -->
+    <rect x="250" y="0" width="220" height="120" rx="12" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+    <text x="360" y="45" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" fill="#15803d">Generative AI</text>
+    <text x="360" y="75" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" fill="#64748b">Foundational Mastery</text>
+
+    <!-- Badge 3 -->
+    <rect x="500" y="0" width="220" height="120" rx="12" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="610" y="45" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" fill="#b91c1c">Large Language Models</text>
+    <text x="610" y="75" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" fill="#64748b">LLMs &amp; Prompt Engineering</text>
+  </g>
+
+  <rect x="330" y="555" width="340" height="40" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/>
+  <text x="500" y="580" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#334155">Credential ID: GCP-RESP-GENAI-2026</text>
+</svg>

@@ -10,7 +10,10 @@ import {
   X,
   Maximize2,
   CheckCircle2,
-  FileCheck
+  FileCheck,
+  GraduationCap,
+  Cloud,
+  Medal
 } from 'lucide-react';
 import { certsData } from '../data/portfolioData';
 
@@ -23,35 +26,71 @@ const iconMap = {
   Trophy: Trophy,
 };
 
+const categoryTabs = [
+  { id: 'all', label: 'All Credentials', icon: Sparkles },
+  { id: 'internships', label: '🎓 Internships', icon: GraduationCap },
+  { id: 'hackathons', label: '🏅 Hackathons', icon: Trophy },
+  { id: 'cloud', label: '🌐 Cloud & Tech', icon: Cloud },
+  { id: 'recognitions', label: '📑 Simulations & Badges', icon: Medal },
+];
+
 export default function Certifications() {
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedCert, setSelectedCert] = useState(null);
   const [hoveredIndex, setHoveredIndex] = useState(null);
+
+  const filteredCerts = selectedCategory === 'all' 
+    ? certsData 
+    : certsData.filter(c => c.category === selectedCategory);
 
   return (
     <section id="achievements" className="py-20 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="flex flex-col items-center text-center mb-16">
+        <div className="flex flex-col items-center text-center mb-12">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/40 text-amber-600 dark:text-amber-400 text-xs font-extrabold uppercase tracking-wider mb-3 shadow-[0_0_15px_rgba(245,158,11,0.15)]">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Verified Credentials & Honors</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
-            Key <span className="gradient-text-gold">Certifications</span> & Internship Credentials
+            Achievements & <span className="gradient-text-gold">Certifications</span>
           </h2>
 
-          <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base max-w-xl mt-3 font-medium leading-relaxed">
-            Hover over any certificate card below to inspect the authentic verified credential image!
+          <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base max-w-2xl mt-3 font-medium leading-relaxed">
+            Verified internship completion certificates, hackathon finalist trophies, cloud badges, and job simulations.
           </p>
 
           <div className="w-20 h-1.5 bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 rounded-full mt-4" />
         </div>
 
-        {/* 2x2 Balanced Grid Alignment for 4 Important Certificates */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          {certsData.map((cert, idx) => {
+        {/* Category Filter Tabs Bar */}
+        <div className="flex items-center justify-center gap-2 overflow-x-auto pb-4 mb-10">
+          {categoryTabs.map((tab) => {
+            const IconComp = tab.icon;
+            const isActive = selectedCategory === tab.id;
+
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setSelectedCategory(tab.id)}
+                className={`px-4 py-2.5 rounded-2xl font-extrabold text-xs sm:text-sm whitespace-nowrap transition-all flex items-center gap-2 ${
+                  isActive
+                    ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/25 scale-105'
+                    : 'bg-slate-900/90 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800'
+                }`}
+              >
+                <IconComp className="w-4 h-4" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Aligned Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredCerts.map((cert, idx) => {
             const IconComponent = iconMap[cert.icon] || Award;
             const isHovered = hoveredIndex === idx;
 
@@ -64,7 +103,7 @@ export default function Certifications() {
                 className="glass-panel rounded-3xl overflow-hidden border border-amber-500/30 neon-border-hover flex flex-col justify-between group cursor-pointer shadow-2xl transition-all duration-300 transform hover:-translate-y-2 hover:shadow-[0_25px_50px_rgba(245,158,11,0.25)] relative"
               >
                 {/* Certificate Image Banner Header */}
-                <div className="relative h-60 w-full overflow-hidden bg-slate-950 flex items-center justify-center border-b border-slate-800/80 p-2">
+                <div className="relative h-52 w-full overflow-hidden bg-slate-950 flex items-center justify-center border-b border-slate-800/80 p-2">
                   {cert.image ? (
                     <img 
                       src={cert.image} 
@@ -83,11 +122,11 @@ export default function Certifications() {
                   <div className={`absolute inset-0 bg-slate-950/75 backdrop-blur-xs flex flex-col items-center justify-center gap-2 transition-opacity duration-300 ${
                     isHovered ? 'opacity-100' : 'opacity-0'
                   }`}>
-                    <div className="p-3.5 rounded-full bg-amber-500 text-slate-950 shadow-xl transform scale-100 hover:scale-110 transition-transform">
-                      <Maximize2 className="w-6 h-6 font-bold" />
+                    <div className="p-3 rounded-full bg-amber-500 text-slate-950 shadow-xl transform scale-100 hover:scale-110 transition-transform">
+                      <Maximize2 className="w-5 h-5 font-bold" />
                     </div>
                     <span className="text-xs font-bold text-amber-300 font-mono tracking-wide">
-                      Click to View High-Res Certificate
+                      Click to Inspect Certificate
                     </span>
                   </div>
 
@@ -110,7 +149,7 @@ export default function Certifications() {
                       </span>
                     </div>
 
-                    <h3 className="font-bold text-xl text-slate-900 dark:text-white group-hover:text-amber-400 transition-colors">
+                    <h3 className="font-bold text-lg text-slate-900 dark:text-white group-hover:text-amber-400 transition-colors line-clamp-2">
                       {cert.title}
                     </h3>
 
@@ -125,7 +164,7 @@ export default function Certifications() {
                       ID: {cert.credentialId}
                     </span>
                     <span className="text-xs text-amber-500 hover:text-amber-400 font-extrabold flex items-center gap-1.5">
-                      <span>Inspect Credential</span>
+                      <span>View Credential</span>
                       <ExternalLink className="w-3.5 h-3.5" />
                     </span>
                   </div>
