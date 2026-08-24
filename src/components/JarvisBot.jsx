@@ -20,7 +20,7 @@ export default function JarvisBot({ activeSection = 'home', onOpenResume }) {
   const [messages, setMessages] = useState([
     {
       sender: 'assistant',
-      text: "Hello! I am Janardhan's 3D AI Assistant. Feel free to ask me about his technical skills, Finance Manager capstone project, or internship credentials!",
+      text: "Hello! I am Janardhan's 3D AI Assistant. Ask me anything about his skills, Finance Manager capstone project, or teaching me custom facts!",
       chips: [
         "Why hire Janardhan?",
         "Tell me about Finance Manager app",
@@ -71,7 +71,8 @@ export default function JarvisBot({ activeSection = 'home', onOpenResume }) {
     if (!voiceEnabled || !('speechSynthesis' in window)) return;
     try {
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
+      const cleanText = text.replace(/[*#•]/g, '');
+      const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.rate = 1.0;
       utterance.pitch = 1.05;
 
@@ -193,7 +194,7 @@ export default function JarvisBot({ activeSection = 'home', onOpenResume }) {
                       : 'bg-slate-900/90 border border-amber-500/30 text-slate-100 rounded-bl-none shadow-md'
                   }`}
                 >
-                  <p className="leading-relaxed">{msg.text}</p>
+                  <p className="leading-relaxed whitespace-pre-line">{msg.text}</p>
                 </div>
 
                 <span className="text-[9px] font-mono text-slate-500 mt-1 px-1">{msg.timestamp}</span>
@@ -224,7 +225,7 @@ export default function JarvisBot({ activeSection = 'home', onOpenResume }) {
               value={inputQuery}
               onChange={(e) => setInputQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="Ask AI about skills, projects, credentials..."
+              placeholder="Ask AI or teach me: 'Remember that...'"
               className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-amber-500 font-medium"
             />
             <button
