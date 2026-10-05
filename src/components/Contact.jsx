@@ -15,6 +15,8 @@ import {
 import confetti from 'canvas-confetti';
 import { personalDetails } from '../data/portfolioData';
 
+import ScrollReveal from './ScrollReveal';
+
 export default function Contact() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,11 +63,11 @@ export default function Contact() {
   };
 
   return (
-    <section id="contact" className="py-20 relative">
+    <section id="contact" className="py-20 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="flex flex-col items-center text-center mb-16">
+        <ScrollReveal direction="up" className="flex flex-col items-center text-center mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold uppercase tracking-wider mb-3">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Get In Touch</span>
@@ -73,17 +75,40 @@ export default function Contact() {
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Let's <span className="gradient-text-gold">Connect</span>
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-sm max-w-xl mt-2">
-            Have a project in mind, or just want to say hi? Reach out — I'm always open to internships, freelance work, or collaboration on interesting problems.
+          <p className="text-slate-600 dark:text-slate-400 text-sm max-w-xl mt-2 font-medium">
+            Have a project in mind, an opportunity, or just want to say hi? Reach out — I'm always open to internships, full-stack roles, or technical collaborations.
           </p>
           <div className="w-20 h-1 bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 rounded-full mt-3" />
-        </div>
+        </ScrollReveal>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
           
           {/* Left Column: Direct Contact Info & Socials */}
-          <div className="lg:col-span-5 flex flex-col justify-between space-y-6">
+          <ScrollReveal direction="left" className="lg:col-span-5 flex flex-col justify-between space-y-6">
             
+            {/* Quick Executive Profile Card */}
+            <div className="p-4 rounded-2xl bg-slate-900/90 border border-amber-500/40 flex items-center gap-4 shadow-xl backdrop-blur-md">
+              <div className="relative w-14 h-14 rounded-2xl overflow-hidden border-2 border-amber-500/60 shrink-0 shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                <img 
+                  src="/photos/janardhan-blazer.jpg" 
+                  alt="Janardhan Devarala" 
+                  className="w-full h-full object-cover object-top" 
+                />
+                <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-400 border-2 border-slate-950" />
+              </div>
+              <div className="truncate">
+                <h4 className="font-extrabold text-white text-sm flex items-center gap-1.5">
+                  <span>Janardhan Devarala</span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                </h4>
+                <p className="text-[11px] text-amber-300 font-mono">Response time: Usually within 24h</p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
+                  <span className="text-[10px] text-emerald-400 font-semibold font-mono truncate">Available for internships &amp; developer roles</span>
+                </div>
+              </div>
+            </div>
+
             <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-amber-500/30 space-y-6 neon-border-hover">
               <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <MessageSquare className="w-5 h-5 text-amber-400" />
@@ -180,10 +205,10 @@ export default function Contact() {
 
             </div>
 
-          </div>
+          </ScrollReveal>
 
           {/* Right Column: Contact Form */}
-          <div className="lg:col-span-7">
+          <ScrollReveal direction="right" className="lg:col-span-7">
             <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-amber-500/30 neon-border-hover">
               
               {isSubmitted ? (
@@ -275,7 +300,7 @@ export default function Contact() {
               )}
 
             </div>
-          </div>
+          </ScrollReveal>
 
         </div>
 

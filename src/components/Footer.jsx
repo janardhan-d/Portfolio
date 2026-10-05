@@ -20,10 +20,12 @@ export default function Footer({ onOpenResume, onOpenAdmin, onOpenArcade }) {
         
         {/* Brand Full Name & Copyright */}
         <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 p-[1px] shadow-[0_0_20px_rgba(245,158,11,0.3)]">
-            <div className="w-full h-full bg-slate-950 rounded-[11px] flex items-center justify-center font-black font-mono text-amber-400 text-sm">
-              JD
-            </div>
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 p-[1.5px] shadow-[0_0_20px_rgba(245,158,11,0.3)] overflow-hidden">
+            <img 
+              src="/photos/janardhan-blazer.jpg" 
+              alt="Janardhan Devarala" 
+              className="w-full h-full object-cover object-top rounded-[10px]" 
+            />
           </div>
           <div>
             <p className="text-sm text-white font-extrabold flex items-center gap-1.5">

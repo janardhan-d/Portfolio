@@ -43,13 +43,15 @@ export default function Navbar({ theme, toggleTheme, onOpenResume, onOpenArcade 
         
         {/* Professional Full Brand Logo */}
         <a href="#home" className="flex items-center gap-3.5 group">
-          {/* Logo Mark Emblem */}
-          <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-300 via-amber-500 to-amber-600 p-[1.5px] shadow-[0_0_25px_rgba(245,158,11,0.4)] group-hover:shadow-[0_0_35px_rgba(245,158,11,0.6)] transition-all">
+          {/* Logo Mark Emblem with Real Portrait */}
+          <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-300 via-amber-500 to-amber-600 p-[2px] shadow-[0_0_25px_rgba(245,158,11,0.4)] group-hover:shadow-[0_0_35px_rgba(245,158,11,0.6)] transition-all">
             <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform duration-300">
-              <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/20 via-transparent to-amber-300/10 opacity-70" />
-              <div className="relative flex items-center justify-center font-black font-mono text-amber-400 tracking-tighter text-base">
-                <span className="gradient-text-gold font-extrabold text-lg">JD</span>
-              </div>
+              <img 
+                src="/photos/janardhan-blazer.jpg" 
+                alt="Janardhan Devarala" 
+                className="w-full h-full object-cover object-top"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
             </div>
           </div>
 

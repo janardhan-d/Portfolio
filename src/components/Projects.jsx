@@ -9,6 +9,8 @@ import {
 import { projectsData } from '../data/portfolioData';
 import ProjectModal from './ProjectModal';
 import QuizHubModal from './quiz/QuizHubModal';
+import ScrollReveal, { StaggerContainer, staggerItem } from './ScrollReveal';
+import { motion } from 'framer-motion';
 
 export default function Projects() {
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -30,11 +32,11 @@ export default function Projects() {
   };
 
   return (
-    <section id="projects" className="py-20 relative">
+    <section id="projects" className="py-20 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="flex flex-col items-center text-center mb-12">
+        <ScrollReveal direction="up" className="flex flex-col items-center text-center mb-12">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/40 text-amber-600 dark:text-amber-400 text-xs font-extrabold uppercase tracking-wider mb-3 shadow-[0_0_15px_rgba(245,158,11,0.15)]">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Proof Of Work</span>
@@ -49,7 +51,7 @@ export default function Projects() {
           </p>
 
           <div className="w-20 h-1.5 bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 rounded-full mt-4" />
-        </div>
+        </ScrollReveal>
 
         {/* Filter Tabs Bar */}
         <div className="flex justify-center mb-12">
@@ -71,14 +73,15 @@ export default function Projects() {
         </div>
 
         {/* Projects Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-12">
+        <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-12">
           {filteredProjects.map((project) => (
-            <div
+            <motion.div
               key={project.id}
+              variants={staggerItem}
               className="glass-panel rounded-3xl overflow-hidden flex flex-col justify-between neon-border-hover group shimmer-card shadow-2xl"
             >
               <div>
-                {/* Project Header Banner (Dark Naval Obsidian for Crisp Legibility in BOTH Themes) */}
+                {/* Project Header Banner */}
                 <div className="p-6 bg-slate-950 border-b border-amber-500/30 relative">
                   <div className="flex items-center justify-between">
                     <span className="px-3 py-1 rounded-full text-[11px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
@@ -128,7 +131,7 @@ export default function Projects() {
                   className="text-xs font-extrabold text-amber-600 dark:text-amber-400 hover:text-amber-500 flex items-center gap-1.5 group/btn"
                 >
                   <Info className="w-4 h-4" />
-                  <span>View Details & Demo</span>
+                  <span>View Details &amp; Demo</span>
                 </button>
 
                 <div className="flex items-center gap-2">
@@ -156,9 +159,9 @@ export default function Projects() {
                 </div>
               </div>
 
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </StaggerContainer>
 
         {/* Modal Windows Render */}
         <ProjectModal

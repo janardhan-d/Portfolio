@@ -11,6 +11,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { skillsData } from '../data/portfolioData';
+import ScrollReveal from './ScrollReveal';
 
 const iconMap = {
   FileCode2: FileCode2,
@@ -36,18 +37,18 @@ export default function Skills() {
   );
 
   return (
-    <section id="skills" className="py-20 relative">
+    <section id="skills" className="py-20 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="flex flex-col items-center text-center mb-12">
+        <ScrollReveal direction="up" className="flex flex-col items-center text-center mb-12">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/40 text-amber-600 dark:text-amber-400 text-xs font-extrabold uppercase tracking-wider mb-3 shadow-[0_0_15px_rgba(245,158,11,0.15)]">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Technical Capabilities</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
-            Skills & <span className="gradient-text-gold">Technologies</span>
+            Skills &amp; <span className="gradient-text-gold">Technologies</span>
           </h2>
 
           <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base max-w-xl mt-3 font-medium leading-relaxed">
@@ -55,7 +56,7 @@ export default function Skills() {
           </p>
 
           <div className="w-20 h-1.5 bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 rounded-full mt-4" />
-        </div>
+        </ScrollReveal>
 
         {/* Filter & Search Bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10">
