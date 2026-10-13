@@ -15,6 +15,7 @@ import {
 import { motion } from 'framer-motion';
 import { personalDetails } from '../data/portfolioData';
 import Avatar3D from './Avatar3D';
+import OptimizedImage from './OptimizedImage';
 
 export default function Hero({ onOpenResume, onOpenArcade }) {
   const [activeVisual, setActiveVisual] = useState('photo'); // 'photo' | 'avatar'
@@ -217,9 +218,11 @@ export default function Hero({ onOpenResume, onOpenArcade }) {
                   
                   {/* Photo Container with subtle inner border */}
                   <div className="relative rounded-2xl overflow-hidden aspect-[4/5] bg-slate-900 border border-amber-500/30">
-                    <img 
-                      src="/photos/janardhan-blazer.jpg" 
-                      alt="Janardhan Devarala" 
+                    <OptimizedImage
+                      src="/photos/janardhan-blazer.jpg"
+                      alt="Janardhan Devarala"
+                      width={800}
+                      height={1000}
                       className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
                     />
 

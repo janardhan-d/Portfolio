@@ -1,22 +1,25 @@
 import React from 'react';
-import { 
-  X, 
-  Download, 
-  Printer, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Linkedin, 
-  Github, 
-  GraduationCap, 
-  Briefcase, 
-  Award, 
+import {
+  X,
+  Download,
+  Printer,
+  Mail,
+  Phone,
+  MapPin,
+  Linkedin,
+  Github,
+  GraduationCap,
+  Briefcase,
+  Award,
   Code2,
   Sparkles
 } from 'lucide-react';
 import { personalDetails, experienceData, certsData, skillsData } from '../data/portfolioData';
+import { useEscapeKey } from '../hooks/useEscapeKey';
 
 export default function ResumeModal({ isOpen, onClose }) {
+  useEscapeKey(isOpen, onClose);
+
   if (!isOpen) return null;
 
   const handlePrint = () => {

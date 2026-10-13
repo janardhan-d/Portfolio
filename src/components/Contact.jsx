@@ -1,26 +1,30 @@
 import React, { useState } from 'react';
-import { 
-  Mail, 
-  Send, 
-  Github, 
-  Linkedin, 
-  Phone, 
-  MapPin, 
-  Copy, 
-  Check, 
-  Sparkles, 
+import {
+  Mail,
+  Send,
+  Github,
+  Linkedin,
+  Phone,
+  MapPin,
+  Copy,
+  Check,
+  Sparkles,
   MessageSquare,
-  CheckCircle2
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { personalDetails } from '../data/portfolioData';
+import { apiFetch } from '../lib/api';
 
 import ScrollReveal from './ScrollReveal';
+import OptimizedImage from './OptimizedImage';
 
 export default function Contact() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [copiedField, setCopiedField] = useState('');
 
   const handleCopy = (text, label) => {
@@ -34,18 +38,23 @@ export default function Contact() {
     if (!formData.name || !formData.email || !formData.message) return;
 
     setIsSubmitting(true);
+    setSubmitError('');
 
     try {
-      // POST message to local SQLite database server
-      const res = await fetch('http://localhost:5000/api/contact', {
+      // POST message to the portfolio API server (VITE_API_URL or local dev server)
+      await apiFetch('/api/contact', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
-      const data = await res.json();
-      console.log('Saved to local SQLite database:', data);
     } catch (err) {
-      console.warn('Local SQLite API offline, simulating save:', err);
+      setIsSubmitting(false);
+      // Never claim success when the message wasn't saved.
+      setSubmitError(
+        err.status === 429
+          ? 'Too many messages — please wait a bit and try again.'
+          : 'Could not send your message. The message server may be offline.'
+      );
+      return;
     }
 
     setIsSubmitting(false);
@@ -89,10 +98,12 @@ export default function Contact() {
             {/* Quick Executive Profile Card */}
             <div className="p-4 rounded-2xl bg-slate-900/90 border border-amber-500/40 flex items-center gap-4 shadow-xl backdrop-blur-md">
               <div className="relative w-14 h-14 rounded-2xl overflow-hidden border-2 border-amber-500/60 shrink-0 shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-                <img 
-                  src="/photos/janardhan-blazer.jpg" 
-                  alt="Janardhan Devarala" 
-                  className="w-full h-full object-cover object-top" 
+                <OptimizedImage
+                  src="/photos/janardhan-blazer.jpg"
+                  alt="Janardhan Devarala"
+                  width={800}
+                  height={1000}
+                  className="w-full h-full object-cover object-top"
                 />
                 <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-400 border-2 border-slate-950" />
               </div>
@@ -217,10 +228,10 @@ export default function Contact() {
                     <CheckCircle2 className="w-8 h-8" />
                   </div>
                   <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white">
-                    Message Saved To Local SQLite Database!
+                    Message Sent Successfully!
                   </h3>
                   <p className="text-sm text-slate-600 dark:text-slate-300 max-w-md">
-                    Thank you for reaching out, Janardhan has received your message and saved it in his local database.
+                    Thank you for reaching out — your message has been delivered and Janardhan will get back to you, usually within 24 hours.
                   </p>
                   <button
                     onClick={() => setIsSubmitted(false)}
@@ -244,6 +255,7 @@ export default function Contact() {
                       <input
                         type="text"
                         required
+                        maxLength={100}
                         placeholder="John Doe"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -259,6 +271,7 @@ export default function Contact() {
                       <input
                         type="email"
                         required
+                        maxLength={254}
                         placeholder="john@example.com"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -275,12 +288,23 @@ export default function Contact() {
                     <textarea
                       required
                       rows={5}
+                      maxLength={2000}
                       placeholder="Hi Janardhan, I'd like to discuss a project or internship opportunity..."
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                       className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-amber-500/60 transition-colors resize-none"
                     />
+                    <span className="text-[10px] font-mono text-slate-400 text-right block">
+                      {formData.message.length}/2000
+                    </span>
                   </div>
+
+                  {submitError && (
+                    <div className="flex items-center gap-1.5 text-xs text-rose-500 font-mono font-bold" role="alert">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{submitError}</span>
+                    </div>
+                  )}
 
                   <button
                     type="submit"
@@ -288,7 +312,7 @@ export default function Contact() {
                     className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-extrabold text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
                   >
                     {isSubmitting ? (
-                      <span>Saving to Local SQLite DB...</span>
+                      <span>Sending Message...</span>
                     ) : (
                       <>
                         <Send className="w-4 h-4" />

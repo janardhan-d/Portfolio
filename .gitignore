@@ -10,6 +10,9 @@ coverage
 dist
 build
 
+# Local SQLite database (contains visitor data — never commit)
+database/
+
 # Misc & Environment
 .DS_Store
 .env

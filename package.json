@@ -8,7 +8,12 @@
     "server": "node server.js",
     "start": "node server.js",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "engines": {
+    "node": ">=18"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
@@ -16,7 +21,9 @@
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",
     "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
     "framer-motion": "^14.0.0",
+    "helmet": "^8.1.0",
     "lucide-react": "^0.469.0",
     "mongoose": "^9.9.2",
     "react": "^18.3.1",
@@ -25,11 +32,19 @@
     "tailwind-merge": "^2.6.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.28.0",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
+    "eslint": "^9.28.0",
+    "eslint-config-prettier": "^10.1.0",
+    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "globals": "^16.2.0",
     "postcss": "^8.4.49",
+    "prettier": "^3.5.3",
+    "sharp": "^0.35.5",
     "tailwindcss": "^3.4.17",
     "vite": "^6.0.7"
   }

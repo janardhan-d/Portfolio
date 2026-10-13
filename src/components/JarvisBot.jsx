@@ -10,9 +10,12 @@ import {
 } from 'lucide-react';
 import { sectionContexts, getAiResponse } from '../data/jarvisKnowledge';
 import Avatar3D from './Avatar3D';
+import { useEscapeKey } from '../hooks/useEscapeKey';
 
 export default function JarvisBot({ activeSection = 'home', onOpenResume }) {
   const [isOpen, setIsOpen] = useState(false);
+
+  useEscapeKey(isOpen, () => setIsOpen(false));
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [inputQuery, setInputQuery] = useState('');
@@ -167,6 +170,8 @@ export default function JarvisBot({ activeSection = 'home', onOpenResume }) {
                   voiceEnabled ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-slate-800 text-slate-400'
                 }`}
                 title={voiceEnabled ? 'Voice Enabled' : 'Voice Muted'}
+                aria-label={voiceEnabled ? 'Mute voice' : 'Enable voice'}
+                aria-pressed={voiceEnabled}
               >
                 {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
               </button>
@@ -174,6 +179,7 @@ export default function JarvisBot({ activeSection = 'home', onOpenResume }) {
               <button
                 onClick={() => setIsOpen(false)}
                 className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+                aria-label="Close AI assistant"
               >
                 <X className="w-4 h-4" />
               </button>

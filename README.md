@@ -14,7 +14,7 @@ An interactive, high-performance portfolio website built for **Janardhan Devaral
 
 - 🌐 **Official Live Website**: [https://janardhan-devarala-portfolio.netlify.app](https://janardhan-devarala-portfolio.netlify.app)
 - 🐙 **GitHub Repository**: [https://github.com/janardhan-d/Portfolio](https://github.com/janardhan-d/Portfolio)
-- 💻 **Local Dev Server**: `http://localhost:3015/`
+- 💻 **Local Dev Server**: `http://localhost:3000/`
 - 🗄️ **Backend Database API**: `http://localhost:5000/api/stats`
 
 ---
@@ -48,11 +48,16 @@ A dedicated developer playground (`RecruiterArcade.jsx`) designed to engage recr
 ### 🗄️ 4. Dual Database Architecture (`server.js`)
 - **MongoDB Cloud Atlas Integration**: Automatically connects to MongoDB Cloud via `process.env.MONGO_PRIVATE_URL` or `process.env.MONGO_URI` (Mongoose schema for `ContactMessage` and `VisitorStat`).
 - **SQLite Local Fallback**: Automatically defaults to local SQLite database (`database/portfolio.db`) when offline or running locally.
-- **Author Security Passcode Lock (`AdminModal.jsx`)**: Protects visitor analytics and contact form messages behind an Author Security Passcode (**`102308`**).
+- **Server-Side Admin Auth (`server.js` + `AdminModal.jsx`)**: Analytics and contact-message endpoints are protected by a server-verified, expiring token issued from the `ADMIN_PIN` environment variable. The PIN never ships in client code.
+
+### 🛡️ 5. Production Hardening
+- **Rate limiting** on contact, visit, quiz, and admin-verification endpoints (`express-rate-limit`)
+- **Input validation** (email format, length caps) and `helmet` security headers
+- **Environment-driven API URL** (`VITE_API_URL`) so the deployed site talks to a hosted API instead of `localhost`
 
 ---
 
-### 💼 5. Curated Capstones & Interactive Showcase (`Projects.jsx`)
+### 💼 6. Curated Capstones & Interactive Showcase (`Projects.jsx`)
 Features Janardhan's authentic project capstones:
 - 📊 **Finance Manager (Python Desktop GUI)**: InnoByte Services internship project built with Python Tkinter and SQLite.
 - 💡 **Smart AI Quiz Hub**: AI-driven quiz application generating dynamic coding challenges.
@@ -83,7 +88,13 @@ Portfolio/
 ├── src/
 │   ├── components/
 │   │   ├── About.jsx              # Education & B.Tech AI background
-│   │   ├── AdminModal.jsx          # Author PIN lock (102308) & DB stats
+│   │   ├── AdminModal.jsx          # Server-verified author analytics dashboard
+│   │   ├── arcade/                 # Dev PlaySpace games (one file per game)
+│   │   │   ├── NeonSnake.jsx       # 60fps canvas snake
+│   │   │   ├── CodeTyper.jsx       # Speed typing challenge
+│   │   │   ├── StackMemory.jsx     # 3D flip memory matcher
+│   │   │   ├── PromptTuner.jsx     # LLM parameter lab
+│   │   │   └── BugSmasher.jsx      # Debugging arcade game
 │   │   ├── Certifications.jsx      # APSCHE & CSC India DSA verified badges
 │   │   ├── Contact.jsx             # Contact form submitting to MongoDB / SQLite
 │   │   ├── Experience.jsx          # InnoByte Services Python Internship details
@@ -91,27 +102,32 @@ Portfolio/
 │   │   ├── Hero.jsx                # Spotlight banner & Dev PlaySpace CTA
 │   │   ├── JarvisBot.jsx           # AI Voice Assistant with soundwave equalizer
 │   │   ├── Navbar.jsx              # Professional logo & Dev PlaySpace launcher
+│   │   ├── OptimizedImage.jsx      # WebP-first <picture> with lazy loading
 │   │   ├── ParticleCanvas.jsx      # Dynamic background particle effect
 │   │   ├── ProjectModal.jsx        # Interactive proof-of-work drawer
 │   │   ├── Projects.jsx            # Capstone projects showcase
-│   │   ├── RecruiterArcade.jsx     # Dev PlaySpace (4 mini-games)
+│   │   ├── RecruiterArcade.jsx     # Dev PlaySpace shell (tab bar)
 │   │   ├── ResumeModal.jsx         # Interactive resume viewer
 │   │   └── Skills.jsx              # Technical skill bars & badges
 │   ├── data/
+│   │   ├── arcadeData.js           # Static game data (snippets, cards, bugs)
 │   │   ├── jarvisKnowledge.js      # AI Assistant knowledge base
 │   │   └── portfolioData.js        # Personal details, projects, skills
 │   ├── hooks/
+│   │   ├── useEscapeKey.js         # Escape-to-close modal hook
 │   │   └── useTheme.js             # Dual dark/light theme manager
+│   ├── lib/
+│   │   └── api.js                  # API client (VITE_API_URL aware) + admin token
 │   ├── App.jsx                     # Core application orchestrator
 │   ├── index.css                   # Global styles & HSL gold design system
 │   └── main.jsx                    # Vite React entrypoint
-├── database/
-│   └── portfolio.db                # SQLite database file
+├── scripts/
+│   └── optimize-images.mjs         # One-shot WebP conversion for public/ assets
 ├── server.js                       # Express backend server (MongoDB + SQLite)
 ├── vercel.json                     # Vercel deployment configuration
 ├── netlify.toml                    # Netlify deployment configuration
 ├── package.json                    # Project dependencies & scripts
-├── .env                            # Environment variables (MONGO_PRIVATE_URL)
+├── .env                            # Environment variables (not committed)
 └── README.md                       # Complete project documentation
 ```
 
@@ -132,10 +148,20 @@ cd Portfolio
 npm install
 ```
 
-### 3. Configure Environment Variables (Optional for MongoDB Cloud)
+### 3. Configure Environment Variables
 Create or edit the `.env` file in the root directory:
 ```env
+# Required: choose the admin passcode for the analytics dashboard.
+# Pick a new value — never reuse one that was committed to git.
+ADMIN_PIN=<your-new-passcode>
+
+# Optional: MongoDB Cloud Atlas connection string.
+# Without it, the server uses the local SQLite database.
 MONGO_PRIVATE_URL=mongodb+srv://<USERNAME>:<PASSWORD>@cluster0.mongodb.net/portfolio?retryWrites=true&w=majority
+
+# Optional: where the API is hosted. The deployed site uses this
+# so the contact form reaches the server from visitors' browsers.
+# VITE_API_URL=https://your-api-host.example.com
 PORT=5000
 ```
 
@@ -152,10 +178,22 @@ npm run dev
 
 ---
 
-## 🔒 Author Security Credentials
+## 🔧 Development & CI
 
-- **Author Security Passcode**: `102308`
-- **Access**: Unlocks the Author Control & Visitor Analytics dashboard (`AdminModal.jsx`) to view messages saved in MongoDB Cloud or SQLite.
+```bash
+npm run lint      # ESLint (flat config)
+npm run format    # Prettier
+npm run build     # Production build (Vite)
+node scripts/optimize-images.mjs   # Re-encode public/ images to WebP
+```
+
+GitHub Actions (`.github/workflows/ci.yml`) runs lint + build on every push and PR.
+
+---
+
+## 🔒 Author Access
+
+The analytics dashboard (`AdminModal.jsx`) is unlocked by the **`ADMIN_PIN`** environment variable on the server. It issues a 6-hour token — the passcode itself is never present in the client bundle. If a passcode was ever committed to git, rotate it: set a new `ADMIN_PIN` and remove the old value from history (`git filter-repo`).
 
 ---
 

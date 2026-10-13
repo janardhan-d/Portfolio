@@ -8,6 +8,7 @@ import {
   Gamepad2
 } from 'lucide-react';
 import { personalDetails } from '../data/portfolioData';
+import OptimizedImage from './OptimizedImage';
 
 export default function Footer({ onOpenResume, onOpenAdmin, onOpenArcade }) {
   const scrollToTop = () => {
@@ -21,10 +22,12 @@ export default function Footer({ onOpenResume, onOpenAdmin, onOpenArcade }) {
         {/* Brand Full Name & Copyright */}
         <div className="flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 p-[1.5px] shadow-[0_0_20px_rgba(245,158,11,0.3)] overflow-hidden">
-            <img 
-              src="/photos/janardhan-blazer.jpg" 
-              alt="Janardhan Devarala" 
-              className="w-full h-full object-cover object-top rounded-[10px]" 
+            <OptimizedImage
+              src="/photos/janardhan-blazer.jpg"
+              alt="Janardhan Devarala"
+              width={800}
+              height={1000}
+              className="w-full h-full object-cover object-top rounded-[10px]"
             />
           </div>
           <div>

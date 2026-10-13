@@ -15,6 +15,7 @@ import {
 import { motion } from 'framer-motion';
 import { personalDetails } from '../data/portfolioData';
 import ScrollReveal from './ScrollReveal';
+import OptimizedImage from './OptimizedImage';
 
 export default function About() {
   const cardRef = useRef(null);
@@ -79,9 +80,11 @@ export default function About() {
                 
                 {/* Photo Container */}
                 <div className="relative rounded-2xl overflow-hidden aspect-[4/5] bg-slate-900 border border-slate-800">
-                  <img 
-                    src="/photos/janardhan-cinematic.jpg" 
-                    alt="Janardhan Devarala - Thinking Stance" 
+                  <OptimizedImage
+                    src="/photos/janardhan-cinematic.jpg"
+                    alt="Janardhan Devarala - Thinking Stance"
+                    width={432}
+                    height={540}
                     className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105 filter contrast-110"
                   />
 

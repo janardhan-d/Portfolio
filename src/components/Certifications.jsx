@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { certsData } from '../data/portfolioData';
 import ScrollReveal, { StaggerContainer, staggerItem } from './ScrollReveal';
+import OptimizedImage from './OptimizedImage';
 import { motion } from 'framer-motion';
 
 const iconMap = {
@@ -218,9 +219,9 @@ export default function Certifications() {
               {/* Certificate Image Document Preview inside Lightbox */}
               {selectedCert.image && (
                 <div className="rounded-2xl overflow-hidden border border-amber-500/40 bg-slate-950 p-3 shadow-2xl flex items-center justify-center">
-                  <img 
-                    src={selectedCert.image} 
-                    alt={selectedCert.title} 
+                  <OptimizedImage
+                    src={selectedCert.image}
+                    alt={selectedCert.title}
                     className="max-h-[450px] w-auto object-contain rounded-xl"
                   />
                 </div>
