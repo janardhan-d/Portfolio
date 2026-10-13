@@ -4,7 +4,7 @@ import sqlite3 from 'sqlite3';
 import mongoose from 'mongoose';
 import path from 'path';
 import fs from 'fs';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import helmet from 'helmet';
