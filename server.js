@@ -18,6 +18,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5000;
 const mongoUrl = process.env.MONGO_PRIVATE_URL || process.env.MONGO_URI;
+
+app.set('trust proxy', 1); // Trust Railway's proxy to allow rate-limiting to work correctly
 const adminPin = process.env.ADMIN_PIN; // Server-side secret — never ship a PIN in client code
 
 // --- Security middleware ---
