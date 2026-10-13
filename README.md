@@ -207,3 +207,11 @@ The analytics dashboard (`AdminModal.jsx`) is unlocked by the **`ADMIN_PIN`** en
 - **Phone**: `+91 7207463004`
 - **LinkedIn**: [https://www.linkedin.com/in/janardhan-devarala-1552172a1](https://www.linkedin.com/in/janardhan-devarala-1552172a1)
 - **GitHub**: [https://github.com/janardhan-d](https://github.com/janardhan-d)
+
+---
+
+## 🤖 Developer Notes (AI Collaboration)
+This project was developed in collaboration with **Claude AI**. To maintain architectural consistency and track the evolution of the site, a full technical journal, roadmap, and system architecture map are maintained in a separate private repository:
+👉 [**github.com/janardhan-d/claude-dev-logs**](https://github.com/janardhan-d/claude-dev-logs)
+
+Future AI collaborators should read `MASTER_DOCS.md` in that repository to understand the production-readiness overhaul, the lazymode implementation, and the security hardening applied to this project.
